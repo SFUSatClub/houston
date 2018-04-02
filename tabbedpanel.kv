@@ -30,9 +30,7 @@
         size_hint_x: 1
         orientation: 'vertical'
 
-        Label:
-            text: 'First tab content area'
-
+        RV
 
         BoxLayout: # layout for command entry
             size_hint_y: 0.2
@@ -43,10 +41,31 @@
                 size_hint_x: .8
                 spacing: .2, .2
                 multiline: False
-                on_text_validate: root.on_enter(*args)
+                on_text_validate: app.on_enter(*args) # RA: this worked before I broke out the maintab class
 
             Button:
                 text: 'Send'
                 size_hint_y: 1
                 size_hint_x: 0.2
-                on_press: app.son()
+                on_press: app.button_press()
+
+
+<SelectableLabel>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+<RV>:
+    viewclass: 'SelectableLabel'
+    SelectableRecycleGridLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        multiselect: True
+        touch_multiselect: True
+        cols: 3
