@@ -1,0 +1,50 @@
+#:kivy 1.0.9
+
+<Test>:
+    size_hint: 1, .9
+    pos_hint: {'center_x': .5, 'center_y': .45}
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: 'UART'
+
+        BoxLayout: # The only child of panel item
+            size_hint_y: 1
+            size_hint_x: 1
+            orientation: 'vertical'
+
+            Label:
+                text: 'First tab content area'
+
+
+            BoxLayout: # layout for command entry
+                size_hint_y: 0.2
+                size_hint_x: 1
+                TextInput:
+                    id: txt_searh
+                    text: ""
+                    size_hint_x: .8
+                    spacing: .2, .2
+                    multiline: False
+                   # bind: app.on_enter()
+
+                Button:
+                    text: 'Send'
+                    size_hint_y: 1
+                    size_hint_x: 0.2
+                    on_press: app.son()
+
+
+
+    TabbedPanelItem:
+        text: 'tab2'
+        BoxLayout:
+            Label:
+                text: 'Second tab content area'
+            Button:
+                text: 'Button that does nothing'
+            RstDocument:
+                text:
+                    '\\n'.join(("Hello world", "-----------",
+                    "You are in the third tab."))
+
