@@ -7,32 +7,7 @@
 
     TabbedPanelItem:
         text: 'UART'
-
-        BoxLayout: # The only child of panel item
-            size_hint_y: 1
-            size_hint_x: 1
-            orientation: 'vertical'
-
-            Label:
-                text: 'First tab content area'
-
-
-            BoxLayout: # layout for command entry
-                size_hint_y: 0.2
-                size_hint_x: 1
-                TextInput:
-                    id: txt_searh
-                    text: ""
-                    size_hint_x: .8
-                    spacing: .2, .2
-                    multiline: False
-                   # bind: app.on_enter()
-
-                Button:
-                    text: 'Send'
-                    size_hint_y: 1
-                    size_hint_x: 0.2
-                    on_press: app.son()
+        MainTab
 
 
 
@@ -48,3 +23,30 @@
                     '\\n'.join(("Hello world", "-----------",
                     "You are in the third tab."))
 
+
+<MainTab>:
+    BoxLayout: # The only child of panel item
+        size_hint_y: 1
+        size_hint_x: 1
+        orientation: 'vertical'
+
+        Label:
+            text: 'First tab content area'
+
+
+        BoxLayout: # layout for command entry
+            size_hint_y: 0.2
+            size_hint_x: 1
+            TextInput:
+                id: txt_searh
+                text: ""
+                size_hint_x: .8
+                spacing: .2, .2
+                multiline: False
+                on_text_validate: root.on_enter(*args)
+
+            Button:
+                text: 'Send'
+                size_hint_y: 1
+                size_hint_x: 0.2
+                on_press: app.son()
