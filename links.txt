@@ -5,3 +5,5 @@ https://kivy.org/docs/guide/lang.html
 https://stackoverflow.com/questions/42436997/how-can-i-bind-a-button-on-the-kv-file-to-make-it-play-a-sound
 
 https://stackoverflow.com/questions/45830039/kivy-python-multiple-widgets-in-recycleview-row
+
+https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application

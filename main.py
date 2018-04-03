@@ -20,19 +20,20 @@ from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 
+# Notes:
+#   - can either call root. or app. methods from kv file.
 
 class MainTab(BoxLayout):
-    def on_enter(self, instance, value):
-        print('User pressed enter in', instance)
+    def button_press(self, *args):
+        print("hello")
+
+    def on_enter(self, *args): # gets text from the input box on enter
+        thing = args[0]
+        print(thing.text)
 
 
-class Test(TabbedPanel):
 
-
-    # textinput = TextInput(text='Hello world', multiline=False)
-
-    # textinput.bind(on_text_validate=on_enter)
-
+class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels with nothing special
     pass
 
 
@@ -79,16 +80,10 @@ class RV(RecycleView):
 
 
 
-class TabbedPanelApp(App):
+class TabbedPanelApp(App): # the top level app class
     def build(self):
-        return Test()
+        return Top()
 
-    def button_press(self, *args):
-        print("hello")
-
-    def on_enter(self, *args): # gets text from the input box on enter
-        thing = args[0]
-        print(thing.text)
 
 
 
