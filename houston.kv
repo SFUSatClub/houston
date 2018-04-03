@@ -31,6 +31,9 @@
 
 <MainTab>:
     id: mt1
+    label_wid: my_custom_label # the label_wid handle can be used to access the label from higher up
+    rv_handle: my_rv #CDS 2 - assign the id to a handle at the top class level
+
     BoxLayout: # panels must have only one direct child
         id: bl1
         size_hint_y: 1
@@ -41,10 +44,14 @@
             id: main_area
             size_hint_y: 0.9
             size_hint_x: 1
-            RV
+            RV:
+                id: my_rv #CDS 1 - give the object an ID
             Label:
                 id: lab_2
-                text: 'jhkjhkj'
+                text: 'jhkjhk'
+            Label:
+                id: my_custom_label
+                text: 'My label before button press'
 
         BoxLayout: # layout for command entry
             size_hint_y: 0.1
@@ -71,8 +78,7 @@
         Rectangle:
             pos: self.pos
             size: self.size
-<RV>:
-    id: in_cmd_view
+<RV@MainTab>:
     viewclass: 'SelectableLabel'
     SelectableRecycleGridLayout:
         default_size: None, dp(56)

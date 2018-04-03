@@ -30,14 +30,25 @@ from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
+# to make children of a class do stuff, search for the comments with: '#CDS ' - the number is the step
 
 class MainTab(BoxLayout):
+    label_wid = ObjectProperty()
+    rv_handle = ObjectProperty() #CDS 3 - assign objectproperty to the handle
+
     def button_press(self, *args):
         print("hello")
 
     def on_enter(self, *args): # gets text from the input box on enter
         thing = args[0]
         print(thing.text)
+
+    def do_stuff(self, input):
+        self.label_wid.text = input
+        print("callsed")
+
+    def rv_do_sthng(self):
+        self.rv_handle.rv_foo("rv hello") #CDS 4 - use the object handle to call methods of that class
 
 class TPI1(TabbedPanelItem):
     def __init__(self):
@@ -90,6 +101,9 @@ class RV(RecycleView):
         super(RV, self).__init__(**kwargs)
         self.data = [{'text': str(x)} for x in items]
 
+    def rv_foo(self, input):
+        print(input)
+
 
 class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def __init__(self):
@@ -123,9 +137,10 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def update_label_text(self, new_text):
         # print(self.ids.lb1.text)
         # self.ids.lb1.text = new_text
-        self.tpi1.mt1.ids.lab_2.text = new_text
-        self.tpi2.ids.lb1.text = new_text
-        # print(self.tpi1.mt1)
+        self.tpi1.mt1.ids.lab_2.text = new_text #going down through the hierarchy to access a property
+        self.tpi2.ids.lb1.text = new_text # a top level ish label
+        self.tpi1.mt1.do_stuff(str(random.random() * 100)) # this one demonstrates using the object property passup thing
+        self.tpi1.mt1.rv_do_sthng() #CDS 6 - going down in the hierarchy a little, call the method that pokes down into the child object's methods
         # print(self.tpi2.children)
     pass
 
