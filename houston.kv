@@ -46,29 +46,38 @@
             id: main_area
             size_hint_y: 0.9
             size_hint_x: 1
+            orientation: 'vertical'
+
             #RV:
              #   id: my_rv #CDS 1 - give the object an ID
 
-            RecycleView:
-                id: rv
-                scroll_type: ['bars', 'content']
-                scroll_wheel_distance: dp(114)
-                bar_width: dp(10)
-                viewclass: 'Row'
-                RecycleBoxLayout:
-                    default_size: None, dp(56)
-                    default_size_hint: 1, None
-                    size_hint_y: None
-                    height: self.minimum_height
-                    orientation: 'vertical'
-                    spacing: dp(2)
+            BoxLayout: # top bar
+                size_hint_x: 1
+                size_hint_y: 0.05
+                Label:
+                    id: lab_2
+                    text: 'jhkjhk'
+                Label:
+                    id: my_custom_label
+                    text: 'My label before button press'
 
-            Label:
-                id: lab_2
-                text: 'jhkjhk'
-            Label:
-                id: my_custom_label
-                text: 'My label before button press'
+            BoxLayout: # main data list
+                size_hint_x: 1
+                size_hint_y: 0.9
+                RecycleView:
+                    id: rv
+                    scroll_type: ['bars', 'content']
+                    scroll_wheel_distance: dp(114)
+                    bar_width: dp(10)
+                    viewclass: 'Row'
+                    RecycleBoxLayout:
+                        default_size: None, dp(56)
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        orientation: 'vertical'
+                        spacing: dp(2)
+
 
         BoxLayout: # layout for command entry
             size_hint_y: 0.1
