@@ -5,6 +5,8 @@
     pos_hint: {'center_x': .5, 'center_y': .45}
     do_default_tab: False
 
+    # TPI1 and TPI2 are added in python since apparently they can't be added here while maintaining hierarchy reference ability .... :/
+
 <TPI1>
     id: tpi1
     text: 'UART'
@@ -35,9 +37,14 @@
         size_hint_x: 1
         orientation: 'vertical'
 
-        Label:
-            id: lab_2
-            text: 'jhkjhkj'
+        BoxLayout: # layout for main area
+            id: main_area
+            size_hint_y: 0.9
+            size_hint_x: 1
+            RV
+            Label:
+                id: lab_2
+                text: 'jhkjhkj'
 
         BoxLayout: # layout for command entry
             size_hint_y: 0.1
@@ -56,4 +63,23 @@
                 size_hint_x: 0.2
                 on_press: root.button_press()
 
-
+<SelectableLabel>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+<RV>:
+    id: in_cmd_view
+    viewclass: 'SelectableLabel'
+    SelectableRecycleGridLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        multiselect: True
+        touch_multiselect: True
+        cols: 3

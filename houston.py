@@ -39,10 +39,6 @@ class MainTab(BoxLayout):
         thing = args[0]
         print(thing.text)
 
-#
-# class TabPan1(TabbedPanelItem):
-#     pass
-
 class TPI1(TabbedPanelItem):
     def __init__(self):
         TabbedPanelItem.__init__(self)
@@ -54,15 +50,55 @@ class TPI2(TabbedPanelItem):
         TabbedPanelItem.__init__(self)
 
 
+items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
+
+class SelectableRecycleGridLayout(FocusBehavior, LayoutSelectionBehavior,
+                                RecycleGridLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+
+class SelectableLabel(RecycleDataViewBehavior, Label):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(SelectableLabel, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(SelectableLabel, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        if is_selected:
+            print("selection changed to {0}".format(rv.data[index]))
+        else:
+            print("selection removed for {0}".format(rv.data[index]))
+
+
+class RV(RecycleView):
+    def __init__(self, **kwargs):
+        super(RV, self).__init__(**kwargs)
+        self.data = [{'text': str(x)} for x in items]
+
 
 class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def __init__(self):
         self.stop = threading.Event()
         TabbedPanel.__init__(self)
 
+# Create tabbed panel item instances so we can reference their children
         self.tpi1 = TPI1()
         self.add_widget(self.tpi1)
-
         self.tpi2 = TPI2()
         self.add_widget(self.tpi2)
 
@@ -89,6 +125,7 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
         # self.ids.lb1.text = new_text
         self.tpi1.mt1.ids.lab_2.text = new_text
         self.tpi2.ids.lb1.text = new_text
+        # print(self.tpi1.mt1)
         # print(self.tpi2.children)
     pass
 
