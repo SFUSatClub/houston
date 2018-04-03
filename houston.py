@@ -31,6 +31,8 @@ from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 # Notes:
 #   - can either call root. or app. methods from kv file.
 # to make children of a class do stuff, search for the comments with: '#CDS ' - the number is the step
+# recycleview example: https://github.com/kivy/kivy/blob/master/examples/widgets/recycleview/basic_data.py
+
 
 class MainTab(BoxLayout):
     label_wid = ObjectProperty()
@@ -103,7 +105,9 @@ class RV(RecycleView):
 
     def rv_foo(self, input):
         print(input)
-
+        # thingy =[4, "airplane", "hello",]
+        # self.data.append({'text': str(x)} for x in thingy)
+        # print(self.data)
 
 class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def __init__(self):
