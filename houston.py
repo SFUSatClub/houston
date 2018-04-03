@@ -8,28 +8,23 @@ Ground control app for CubeSat.
 '''
 
 import threading
+from random import sample
+from string import ascii_lowercase
+import time
+import random
+
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
-
-from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
-import time
-import random
 from kivy.clock import Clock, mainthread
 from kivy.app import ObjectProperty
-from kivy.lang import Builder
-from kivy.uix.recycleview import RecycleView
 from kivy.uix.boxlayout import BoxLayout
-from random import sample
-from string import ascii_lowercase
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.label import Label
-from kivy.properties import BooleanProperty
-from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+
+import serial
+import queue
+
+serialPort = '/dev/cu.usbserial-A700eYE7'
+serial_TxQ = queue.Queue()
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -37,20 +32,23 @@ from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 # recycleview example: https://github.com/kivy/kivy/blob/master/examples/widgets/recycleview/basic_data.py
 
 
+
 class MainTab(BoxLayout):
     label_wid = ObjectProperty()
-    rv_handle = ObjectProperty() #CDS 3 - assign objectproperty to the handle
     rv = ObjectProperty()
-    def button_press(self, *args):
-        print("hello")
+    txt_entry = ObjectProperty() # text input box
+
+    def send_button_press(self, *args):
+        print('Sending_button:' + self.txt_entry.text)
+        serial_TxQ.put(self.txt_entry.text)
 
     def on_enter(self, *args): # gets text from the input box on enter
         thing = args[0]
-        print(thing.text)
+        print('Sending_enter:' + thing.text)
+        serial_TxQ.put(thing.text)
 
-    def do_stuff(self, input):
-        self.label_wid.text = input
-        print("callsed")
+
+    #rv_handle = ObjectProperty() #CDS 3 - assign objectproperty to the handle
 
     # def rv_do_sthng(self):
     #     # self.rv_handle.rv_foo("rv hello") #CDS 4 - use the object handle to call methods of that class
@@ -60,8 +58,7 @@ class MainTab(BoxLayout):
     #     self.rv_handle.populate()
 
     def populate(self):
-        self.rv.data = [{'value': ''.join(sample(ascii_lowercase, 6))}
-                        for x in range(50)]
+        self.rv.data = [{'value': 'init'}]
 
     def sort(self):
         self.rv.data = sorted(self.rv.data, key=lambda x: x['value'])
@@ -120,25 +117,46 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
          while True:
             if self.stop.is_set():
                 # Stop running this thread so the main Python process can exit.
+                # close the log
                 return
 
-            print("second thread")
-            self.update_label_text(str(random.random() * 100))
+            self.read_serial()
 
-            time.sleep(3)
 
+    def read_serial(self):
+        try:
+            with serial.Serial(serialPort, 115200, timeout = 10) as ser:
+                offset = time.time()
+
+                while(not self.stop.is_set()):
+
+                    while serial_TxQ.qsize() > 0:
+                        ser.write(serial_TxQ.get().encode('utf-8'))
+
+                    else:
+                        line = ser.readline()
+
+                        if len(line) > 1: # this catches the weird glitch where I only get out one character
+                            print (time.time() - offset,':',line.decode('utf-8'))
+                            self.update_label_text(str(line.decode('utf-8')))
+                else:
+                    ser.Close()
+
+        except Exception as error:
+            if not self.stop.is_set():
+                print(error)
+                time.sleep(0.5)
+                print('Waiting for serial...')
+                # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
+                self.read_serial()
 
     @mainthread
     def update_label_text(self, new_text):
-        # print(self.ids.lb1.text)
-        # self.ids.lb1.text = new_text
-        self.tpi1.mt1.ids.lab_2.text = new_text #going down through the hierarchy to access a property
-        self.tpi2.ids.lb1.text = new_text # a top level ish label
-        self.tpi1.mt1.do_stuff(str(random.random() * 100)) # this one demonstrates using the object property passup thing
-        # self.tpi1.mt1.rv_do_sthng() #CDS 6 - going down in the hierarchy a little, call the method that pokes down into the child object's methods
-        self.tpi1.mt1.insert_end('sdfsd')
+        # self.tpi1.mt1.ids.lab_2.text = new_text #going down through the hierarchy to access a property
+        # self.tpi2.ids.lb1.text = new_text # a top level ish label
 
-        # print(self.tpi2.children)
+        # self.tpi1.mt1.rv_do_sthng() #CDS 6 - going down in the hierarchy a little, call the method that pokes down into the child object's methods
+        self.tpi1.mt1.insert_end(new_text)
     pass
 
 
@@ -155,11 +173,6 @@ class HoustonApp(App): # the top level app class
         self.top = Top()
 
         return self.top
-
-
-
-
-
 
 if __name__ == '__main__':
     HoustonApp().run()

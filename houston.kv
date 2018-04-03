@@ -14,7 +14,7 @@
 
 <TPI2>
     id: tpi2
-    text: 'tab2'
+    text: 'Command Q'
     BoxLayout:
         id: blx
         Label:
@@ -32,7 +32,7 @@
 <MainTab>:
     id: mt1
     label_wid: my_custom_label # the label_wid handle can be used to access the label from higher up
-
+    txt_entry: txt_entry
    # rv_handle: my_rv #CDS 2 - assign the id to a handle at the top class level
     rv: rv
 
@@ -56,10 +56,10 @@
                 size_hint_y: 0.05
                 Label:
                     id: lab_2
-                    text: 'jhkjhk'
+                    text: 'Some Status Thing'
                 Label:
                     id: my_custom_label
-                    text: 'My label before button press'
+                    text: 'Other Status Thing'
 
             BoxLayout: # main data list
                 size_hint_x: 1
@@ -71,7 +71,7 @@
                     bar_width: dp(10)
                     viewclass: 'Row'
                     RecycleBoxLayout:
-                        default_size: None, dp(56)
+                        default_size: None, dp(30) # dp(30) is height
                         default_size_hint: 1, None
                         size_hint_y: None
                         height: self.minimum_height
@@ -83,7 +83,7 @@
             size_hint_y: 0.1
             size_hint_x: 1
             TextInput:
-                id: txt_searh
+                id: txt_entry
                 text: ""
                 size_hint_x: .8
                 spacing: .2, .2
@@ -94,27 +94,25 @@
                 text: 'Send'
                 size_hint_y: 1
                 size_hint_x: 0.2
-                on_press: root.button_press()
+                on_press: root.send_button_press()
 
 
 <Row@BoxLayout>:
     canvas.before:
         Color:
-            rgba: 0.5, 0.5, 0.5, 1
+            rgba: 0.14, 0.14, 0.14, 1
         Rectangle:
             size: self.size
             pos: self.pos
     value: ''
     Label:
         text: root.value
+        padding: 10, 50
+        text_size: root.width, None
+        size: self.texture_size
+        halign: 'left'
+        valign: 'middle'
+        color: 0.92, 0.9, 0.66, 1
 
-<SelectableLabel>:
-    # Draw a background to indicate selection
-    canvas.before:
-        Color:
-            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
-        Rectangle:
-            pos: self.pos
-            size: self.size
 
 
