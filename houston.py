@@ -43,12 +43,29 @@ class MainTab(BoxLayout):
 # class TabPan1(TabbedPanelItem):
 #     pass
 
+class TPI1(TabbedPanelItem):
+    def __init__(self):
+        TabbedPanelItem.__init__(self)
+        self.mt1 = MainTab()
+        self.add_widget(self.mt1)
+
+class TPI2(TabbedPanelItem):
+    def __init__(self):
+        TabbedPanelItem.__init__(self)
+
 
 
 class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def __init__(self):
         self.stop = threading.Event()
         TabbedPanel.__init__(self)
+
+        self.tpi1 = TPI1()
+        self.add_widget(self.tpi1)
+
+        self.tpi2 = TPI2()
+        self.add_widget(self.tpi2)
+
         self.start_second_thread("dfjh")
 
     def start_second_thread(self, l_text):
@@ -68,9 +85,11 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
 
     @mainthread
     def update_label_text(self, new_text):
-        print(self.ids.lb1.text)
-        self.ids.lb1.text = new_text
-
+        # print(self.ids.lb1.text)
+        # self.ids.lb1.text = new_text
+        self.tpi1.mt1.ids.lab_2.text = new_text
+        self.tpi2.ids.lb1.text = new_text
+        # print(self.tpi2.children)
     pass
 
 
