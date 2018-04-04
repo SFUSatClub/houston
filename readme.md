@@ -1,10 +1,10 @@
-#SFUSat Houston
+# SFUSat Houston
 
 Named after the coloquial term for the Apollo missions' control centre, Houston is SFUSat's control centre. 
 
 It is a serial monitor, command schedule creator, command uploader, and telemetry verifier. 
 
-##Installation
+## Installation
 1. run `sudo pip3 install virtualenvwrapper`
 2. run `nano ~/.bashrc`
 3. At the bottom of your .bashrc file, paste the following lines with ctrl + shift + v
