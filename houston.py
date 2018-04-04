@@ -87,9 +87,36 @@ class TPI1(TabbedPanelItem):
         self.mt1 = MainTab()
         self.add_widget(self.mt1)
 
-class TPI2(TabbedPanelItem):
+
+class CMDQTab(TabbedPanelItem):
     def __init__(self):
         TabbedPanelItem.__init__(self)
+        self.cmds_list = []
+
+    def populate(self):
+        self.rv.data = [{'value': ''.join(sample(ascii_lowercase, 6))}
+                        for x in range(50)]
+
+    def add_to_sched(self):
+        print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
+        
+    def sort(self):
+        self.rv.data = sorted(self.rv.data, key=lambda x: x['value'])
+
+    def clear(self):
+        self.rv.data = []
+
+    def insert(self, value):
+        self.rv.data.insert(0, {'value': value or 'default value'})
+
+    def update(self, value):
+        if self.rv.data:
+            self.rv.data[0]['value'] = value or 'default new value'
+            self.rv.refresh_from_data()
+
+    def remove(self):
+        if self.rv.data:
+            self.rv.data.pop(0)
 
 
 items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
@@ -103,8 +130,9 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
 # Create tabbed panel item instances so we can reference their children
         self.tpi1 = TPI1()
         self.add_widget(self.tpi1)
-        self.tpi2 = TPI2()
-        self.add_widget(self.tpi2)
+
+        self.cmd_q_tab = CMDQTab()
+        self.add_widget(self.cmd_q_tab)
 
         self.tpi1.mt1.populate()
 

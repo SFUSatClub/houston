@@ -5,29 +5,82 @@
     pos_hint: {'center_x': .5, 'center_y': .45}
     do_default_tab: False
 
-    # TPI1 and TPI2 are added in python since apparently they can't be added here while maintaining hierarchy reference ability .... :/
+    # TPI1 and CMDQTAB  are added in python since apparently they can't be added here while maintaining hierarchy reference ability .... :/
 
-<TPI1>
+<TPI1>: # the main UART tab
     id: tpi1
     text: 'UART'
     MainTab
 
-<TPI2>
-    id: tpi2
-    text: 'Command Q'
+
+<CMDQTab>: # the command queue tab
+    id: tpi3
+    text: 'Queue'
+    # pass up the references for easy access in python
+    rv: rv
+    cmd_entry: cmd_entry
+    cmd_expected_entry: cmd_expected_entry
+    cmd_timeout_entry: cmd_timeout_entry
     BoxLayout:
         id: blx
-        Label:
-            id: lb1
-            text: 'Second tab content area'
-        Button:
-            id: btxl
-            text: 'Button that does nothing'
-        RstDocument:
-            text:
-                '\\n'.join(("Hello world", "-----------",
-                "You are in the third tab."))
+        orientation:'vertical'
+        
+        GridLayout: # label container
+            cols: 3
+            rows: 1
+            size_hint_y: None
+            height: 50
+            Label:
+                text: 'Command'
+            Label:
+                text: 'Timeout'
+            Label:
+                text: 'Expected Response'
+        GridLayout:
+            cols: 3
+            rows: 3
+            size_hint_y: 0.4
+            height: dp(108)
+            padding: dp(8)
+            spacing: dp(16)
+            TextInput:
+                id: cmd_entry
+                size_hint_x: 1
+                hint_text: 'Command'
+                padding: dp(10), dp(5), 0, 0
 
+            TextInput:
+                id: cmd_timeout_entry
+                size_hint_x: 1
+                hint_text: 'Timeout'
+                padding: dp(10), dp(5), 0, 0
+            
+            TextInput:
+                id: cmd_expected_entry
+                size_hint_x: 1
+                hint_text: 'Expected Response'
+                padding: dp(10), dp(5), 0, 0
+            Button:
+                text: 'Add to Schedule'
+                on_press: root.add_to_sched()
+
+            Button:
+                text: 'Clear Schedule'
+                on_press: root.remove()
+
+        RecycleView:
+            id: rv
+            scroll_type: ['bars', 'content']
+            scroll_wheel_distance: dp(114)
+            bar_width: dp(10)
+            viewclass: 'Row'
+            RecycleBoxLayout:
+                default_size: None, dp(56)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: dp(2)
 
 <MainTab>:
     id: mt1
