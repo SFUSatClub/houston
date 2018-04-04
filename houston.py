@@ -30,6 +30,7 @@ serial_TxQ = queue.Queue()
 #   - can either call root. or app. methods from kv file.
 # to make children of a class do stuff, search for the comments with: '#CDS ' - the number is the step
 # recycleview example: https://github.com/kivy/kivy/blob/master/examples/widgets/recycleview/basic_data.py
+# thread example: https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
 
 
@@ -93,36 +94,38 @@ class CMDQTab(TabbedPanelItem):
     def __init__(self):
         TabbedPanelItem.__init__(self)
         self.cmds_list = []
-        self.rv.data = [{'cmd': 'hello', 'timeout':str(234), 'expect': 'sdf' },
-                        {'cmd': 'bye', 'timeout':str(345), 'expect': 'dfv' }] 
+        self.rv.data = [{'cmdid': str(0), 'cmd': 'hello', 'timeout':str(234), 'expect': 'sdf' },
+                        {'cmdid': str(1), 'cmd': 'bye', 'timeout':str(345), 'expect': 'dfv' }] 
+        self.cmdid = 2 # unique command ID
                             
-        print (self.rv.data)#
-
-
-    def populate(self):
-        self.rv.data = [{'value': ''.join(sample(ascii_lowercase, 6))}
-                        for x in range(50)]
-
     def add_to_sched(self):
         print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
-        
-    def sort(self):
-        self.rv.data = sorted(self.rv.data, key=lambda x: x['value'])
+        #TODO: make sure data is ok before adding it
+        self.rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
+        self.cmdid += 1
 
-    def clear(self):
+    def clear_sched(self):
         self.rv.data = []
+        self.cmdid = 0;
+
+    def rm_button_press(self, cmdid):
+        for i, dic in enumerate(self.rv.data):
+            if dic['cmdid'] == cmdid:
+                break
+
+        del self.rv.data[i]
 
     def insert(self, value):
         self.rv.data.insert(0, {'value': value or 'default value'})
 
-    def update(self, value):
-        if self.rv.data:
-            self.rv.data[0]['value'] = value or 'default new value'
-            self.rv.refresh_from_data()
+    # def update(self, value):
+    #     if self.rv.data:
+    #         self.rv.data[0]['value'] = value or 'default new value'
+    #         self.rv.refresh_from_data()
 
-    def remove(self):
-        if self.rv.data:
-            self.rv.data.pop(0)
+    # def remove(self):
+    #     if self.rv.data:
+    #         self.rv.data.pop(0)
 
 
 items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
@@ -207,6 +210,9 @@ class HoustonApp(App): # the top level app class
         self.top = Top()
 
         return self.top
+
+    def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
+        self.top.cmd_q_tab.rm_button_press(cmdid)
 
 if __name__ == '__main__':
     HoustonApp().run()

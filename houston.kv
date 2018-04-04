@@ -66,7 +66,7 @@
 
             Button:
                 text: 'Clear Schedule'
-                on_press: root.remove()
+                on_press: root.clear_sched()
 
         RecycleView:
             id: rv
@@ -185,6 +185,8 @@
         Rectangle:
             size: self.size
             pos: self.pos
+    # these allow us to pop data in from py - these are rv.data dict keys
+    cmdid: ''
     cmd: ''
     timeout: ''
     expect: ''
@@ -192,17 +194,26 @@
         size_hint_x: 1
         orientation: 'horizontal'
         Label:
-            size_hint_x: 0.333
+            size_hint_x: 0.15
+            text: root.cmdid
+            color: 0.3, 0.3, 0.3, 1
+        Label:
+            size_hint_x: 0.22
             text: root.cmd
             color: 0.0, 0.9, 0.66, 1
         Label:
-            size_hint_x: 0.333
+            size_hint_x: 0.22
             text: root.timeout
             color: 0.0, 0.9, 0.66, 1
         Label:
-            size_hint_x: 0.333
+            size_hint_x: 0.22
             text: root.expect
             color: 0.0, 0.9, 0.66, 1
+        Button:
+            text: 'X'
+            size_hint_x: 0.05
+            on_press: app.rm_button_press(root.cmdid)
+            color: 0.14, 0.14, 0.14, 1
        
 
 
