@@ -19,7 +19,8 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.clock import Clock, mainthread
 from kivy.app import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-
+from kivy.uix.image import Image
+from houston_utils import *
 import serial
 import queue
 
@@ -31,7 +32,7 @@ serial_TxQ = queue.Queue()
 # to make children of a class do stuff, search for the comments with: '#CDS ' - the number is the step
 # recycleview example: https://github.com/kivy/kivy/blob/master/examples/widgets/recycleview/basic_data.py
 # thread example: https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
-
+# loader example: https://kivy.org/docs/api-kivy.uix.filechooser.html
 
 
 class MainTab(BoxLayout):
@@ -61,15 +62,6 @@ class MainTab(BoxLayout):
     def populate(self):
         self.rv.data = [{'value': 'init'}]
 
-    def sort(self):
-        self.rv.data = sorted(self.rv.data, key=lambda x: x['value'])
-
-    def clear(self):
-        self.rv.data = []
-
-    def insert(self, value):
-        self.rv.data.insert(0, {'value': value or 'default value'})
-
     def insert_end(self, value):
         self.rv.data.append({'value': value or 'default value'})
 
@@ -77,10 +69,6 @@ class MainTab(BoxLayout):
         if self.rv.data:
             self.rv.data[0]['value'] = value or 'default new value'
             self.rv.refresh_from_data()
-
-    def remove(self):
-        if self.rv.data:
-            self.rv.data.pop(0)
 
 class TPI1(TabbedPanelItem):
     def __init__(self):
@@ -118,18 +106,36 @@ class CMDQTab(TabbedPanelItem):
     def insert(self, value):
         self.rv.data.insert(0, {'value': value or 'default value'})
 
-    # def update(self, value):
-    #     if self.rv.data:
-    #         self.rv.data[0]['value'] = value or 'default new value'
-    #         self.rv.refresh_from_data()
+    loadfile = ObjectProperty(None)
+    savefile = ObjectProperty(None)
+    text_input = ObjectProperty(None)
 
-    # def remove(self):
-    #     if self.rv.data:
-    #         self.rv.data.pop(0)
+    def dismiss_popup(self):
+        self._popup.dismiss()
 
+    def show_load(self):
+        content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
+        self._popup = Popup(title="Load file", content=content,
+                            size_hint=(0.9, 0.9))
+        self._popup.open()
 
-items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
+    def show_save(self):
+        content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
+        self._popup = Popup(title="Save file", content=content,
+                            size_hint=(0.9, 0.9))
+        self._popup.open()
 
+    def load(self, path, filename):
+        with open(os.path.join(path, filename[0])) as stream:
+            self.text_input.text = stream.read()
+
+        self.dismiss_popup()
+
+    def save(self, path, filename):
+        with open(os.path.join(path, filename), 'w') as stream:
+            stream.write(self.text_input.text)
+
+        self.dismiss_popup()
 
 class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
     def __init__(self):
@@ -208,11 +214,13 @@ class HoustonApp(App): # the top level app class
 
     def build(self):
         self.top = Top()
-
         return self.top
 
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
         self.top.cmd_q_tab.rm_button_press(cmdid)
+
+Factory.register('LoadDialog', cls=LoadDialog)
+Factory.register('SaveDialog', cls=SaveDialog)
 
 if __name__ == '__main__':
     HoustonApp().run()
