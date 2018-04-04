@@ -87,11 +87,17 @@ class TPI1(TabbedPanelItem):
         self.mt1 = MainTab()
         self.add_widget(self.mt1)
 
+items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
 
 class CMDQTab(TabbedPanelItem):
     def __init__(self):
         TabbedPanelItem.__init__(self)
         self.cmds_list = []
+        self.rv.data = [{'cmd': 'hello', 'timeout':str(234), 'expect': 'sdf' },
+                        {'cmd': 'bye', 'timeout':str(345), 'expect': 'dfv' }] 
+                            
+        print (self.rv.data)#
+
 
     def populate(self):
         self.rv.data = [{'value': ''.join(sample(ascii_lowercase, 6))}
