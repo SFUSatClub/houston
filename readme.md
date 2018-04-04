@@ -4,6 +4,8 @@ Named after the coloquial term for the Apollo missions' control centre, Houston 
 
 It is a serial monitor, command schedule creator, command uploader, and telemetry verifier. 
 
+![screenshot](screenshot.png?raw=true "Screenshot of early version")
+
 ## Installation
 1. run `sudo pip3 install virtualenvwrapper`
 2. run `nano ~/.bashrc`
