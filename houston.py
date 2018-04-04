@@ -57,9 +57,6 @@ class MainTab(BoxLayout):
     # def rv_do_sthng(self):
     #     # self.rv_handle.rv_foo("rv hello") #CDS 4 - use the object handle to call methods of that class
     #     self.rv_handle.insert("sdfkjh")
-    #
-    # def rv_init(self):
-    #     self.rv_handle.populate()
 
     def populate(self):
         self.rv.data = [{'value': 'init'}]
@@ -78,8 +75,6 @@ class TPI1(TabbedPanelItem):
         self.mt1 = MainTab()
         self.add_widget(self.mt1)
 
-items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
-
 class CMDQTab(TabbedPanelItem):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
@@ -88,8 +83,8 @@ class CMDQTab(TabbedPanelItem):
     def __init__(self):
         TabbedPanelItem.__init__(self)
         self.cmds_list = []
-        self.rv.data = [{'cmdid': str(0), 'cmd': 'hello', 'timeout':str(234), 'expect': 'sdf' },
-                        {'cmdid': str(1), 'cmd': 'bye', 'timeout':str(345), 'expect': 'dfv' }] 
+        self.rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'timeout':str(3), 'expect': '' },
+                        {'cmdid': str(1), 'cmd': 'get heap', 'timeout':str(5), 'expect': '' }] 
         self.cmdid = 2 # unique command ID
         self.sched = CommandSchedule(serial_TxQ) # class for schedule handling (validation, queueing)
         
@@ -115,12 +110,13 @@ class CMDQTab(TabbedPanelItem):
 
     def uplink_schedule(self):
         # using the kivy clock, we schedule when to put cmds out on the tx queue
-        self.sched.new = self.rv.data # add all of our commands
+        self.sched.new = self.rv.data[:] # add all of our commands
 
         for command in self.rv.data:
             timeout = int(command['timeout'])
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
+            print("COMMAND: ", str(timeout), str(cmdid))
             Clock.schedule_once(partial(self.sched.uplink, cmdid), timeout)
 
             

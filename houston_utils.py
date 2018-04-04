@@ -28,7 +28,8 @@ class CommandSchedule():
         self.errored = [] # commands that timed out
         self.tx_queue = tx_queue
 
-    def uplink(self, dt, cmdid):
+    def uplink(self, cmdid, dt):
+        print("CMDID_in", str(cmdid))
         for i, dic in enumerate(self.new):
             if dic['cmdid'] == cmdid:
                 break
@@ -37,7 +38,9 @@ class CommandSchedule():
         # rm from new list, put on pending list
         del self.new[i]
         self.pending.append(command)
-
+        print("NEW:", self.new)
+        print("command: ", command, str(i))
         print("SCHEDULED COMMAND SEND: " + str(command['cmd']))
         self.tx_queue.put(str(command['cmd']))
+        return
 
