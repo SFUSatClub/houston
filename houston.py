@@ -12,6 +12,8 @@ from random import sample
 from string import ascii_lowercase
 import time
 import random
+from functools import partial
+
 
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -79,13 +81,18 @@ class TPI1(TabbedPanelItem):
 items = [0, "apple", "dog", 1, "banana", "cat", 2, "pear", "rat", 3,  "pineapple", "bat"]
 
 class CMDQTab(TabbedPanelItem):
+    loadfile = ObjectProperty(None)
+    savefile = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+
     def __init__(self):
         TabbedPanelItem.__init__(self)
         self.cmds_list = []
         self.rv.data = [{'cmdid': str(0), 'cmd': 'hello', 'timeout':str(234), 'expect': 'sdf' },
                         {'cmdid': str(1), 'cmd': 'bye', 'timeout':str(345), 'expect': 'dfv' }] 
         self.cmdid = 2 # unique command ID
-                            
+        self.sched = CommandSchedule(serial_TxQ) # class for schedule handling (validation, queueing)
+        
     def add_to_sched(self):
         print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
         #TODO: make sure data is ok before adding it
@@ -106,9 +113,17 @@ class CMDQTab(TabbedPanelItem):
     def insert(self, value):
         self.rv.data.insert(0, {'value': value or 'default value'})
 
-    loadfile = ObjectProperty(None)
-    savefile = ObjectProperty(None)
-    text_input = ObjectProperty(None)
+    def uplink_schedule(self):
+        # using the kivy clock, we schedule when to put cmds out on the tx queue
+        self.sched.new = self.rv.data # add all of our commands
+
+        for command in self.rv.data:
+            timeout = int(command['timeout'])
+            cmdid = command['cmdid']
+            #TODO: determine schedule time from now based on relative flag
+            Clock.schedule_once(partial(self.sched.uplink, cmdid), timeout)
+
+            
 
     def dismiss_popup(self):
         self._popup.dismiss()

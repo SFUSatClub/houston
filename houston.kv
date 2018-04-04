@@ -86,7 +86,7 @@
                 spacing: dp(2)
                 cols: 1
 
-        BoxLayout: # load, save, schedule 
+        BoxLayout: # load, save, schedule buttons 
             orientation: 'horizontal'
             size_hint_y: 0.1
             BoxLayout:
@@ -100,8 +100,8 @@
                     text: 'Save'
                     on_release: root.show_save()
                 Button:
-                    text: 'Uplink'
-                    on_release: root.show_save()
+                    text: 'Uplink Schedule'
+                    on_release: root.uplink_schedule()
 
 
 <MainTab>:

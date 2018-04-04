@@ -19,3 +19,25 @@ class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
+
+class CommandSchedule():
+    def __init__(self, tx_queue):
+        self.new = [] # commands that have not yet been sent out to the OBC
+        self.pending = [] # commands waiting on valid response or timeout
+        self.acknowledged = [] # commands that have been acknowledged properly
+        self.errored = [] # commands that timed out
+        self.tx_queue = tx_queue
+
+    def uplink(self, dt, cmdid):
+        for i, dic in enumerate(self.new):
+            if dic['cmdid'] == cmdid:
+                break
+        command = self.new[i]
+        
+        # rm from new list, put on pending list
+        del self.new[i]
+        self.pending.append(command)
+
+        print("SCHEDULED COMMAND SEND: " + str(command['cmd']))
+        self.tx_queue.put(str(command['cmd']))
+
