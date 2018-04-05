@@ -1,11 +1,14 @@
 #:kivy 1.0.9
 <Top>:
-    tpi1: tpi1
-    tpi3: tpi3
+    uart_tab: uart_tab
+    sched_tab: sched_tab
+    orientation: 'vertical'
 
-    # Label:
-    #     text: 'kjhkjh'
-    BoxLayout:
+    Label:
+        size_hint_y: 0.05
+        text: 'kjhkjh'
+
+    BoxLayout: #space below the logo tab
         orientation: 'horizontal'
         size_hint: 1, 0.95
         TabbedPanel:
@@ -13,15 +16,12 @@
             pos_hint: {'center_x': .5, 'center_y': .475}
             do_default_tab: False
 
-            TPI1
-                id: tpi1
-            CMDQTab
-                id: tpi3
+            UARTTabWrap:
+                id: uart_tab
+            CMDQTab:
+                id: sched_tab
 
-    # TPI1 and CMDQTAB  are added in python since apparently they can't be added here while maintaining hierarchy reference ability .... :/
-
-<TPI1>: # the main UART tab
-    # id: tpi1
+<UARTTabWrap>: # the main UART tab
     mt1: mt1
     text: 'UART'
     MainTab:
@@ -29,17 +29,17 @@
 
 
 <CMDQTab>: # the command queue tab
-   # id: tpi3
     text: 'Queue'
     new_rv: new_rv
     cmd_entry: cmd_entry
     cmd_expected_entry: cmd_expected_entry
     cmd_timeout_entry: cmd_timeout_entry
-    BoxLayout:
+    
+    BoxLayout: # panels must have only one direct child
         id: blx
         orientation:'vertical'
         
-        GridLayout: # label container
+        GridLayout: # container for the column labels
             cols: 3
             rows: 1
             size_hint_y: None
@@ -50,7 +50,8 @@
                 text: 'Timeout'
             Label:
                 text: 'Expected Response'
-        GridLayout:
+        
+        GridLayout: # for buttons
             cols: 3
             rows: 3
             size_hint_y: None
@@ -117,13 +118,12 @@
                     on_release: root.uplink_schedule()
 
 
-<MainTab>:
+<MainTab>: 
     label_wid: my_custom_label # the label_wid handle can be used to access the label from higher up
     txt_entry: txt_entry
-   # rv_handle: my_rv #CDS 2 - assign the id to a handle at the top class level
     rv: rv
 
-    BoxLayout: # panels must have only one direct child
+    BoxLayout: 
         id: bl1
         size_hint_y: 1
         size_hint_x: 1
@@ -134,9 +134,6 @@
             size_hint_y: 0.9
             size_hint_x: 1
             orientation: 'vertical'
-
-            #RV:
-             #   id: my_rv #CDS 1 - give the object an ID
 
             BoxLayout: # top bar
                 size_hint_x: 1
@@ -191,7 +188,7 @@
         Rectangle:
             size: self.size
             pos: self.pos
-    value: ''
+    value: '' # this is the key of the dict item that will be used
     Label:
         text: root.value
         padding_x: 20
@@ -240,6 +237,8 @@
             color: 0.14, 0.14, 0.14, 1
        
 
+       
+# Stuff from elsewhere
 <LoadDialog>:
     BoxLayout:
         size: root.size

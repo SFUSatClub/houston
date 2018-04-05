@@ -55,13 +55,6 @@ class MainTab(BoxLayout):
         print('Sending_enter:' + thing.text)
         serial_TxQ.put(thing.text)
 
-
-    #rv_handle = ObjectProperty() #CDS 3 - assign objectproperty to the handle
-
-    # def rv_do_sthng(self):
-    #     # self.rv_handle.rv_foo("rv hello") #CDS 4 - use the object handle to call methods of that class
-    #     self.rv_handle.insert("sdfkjh")
-
     def populate(self):
         self.rv.data = [{'value': 'init'}]
 
@@ -73,12 +66,11 @@ class MainTab(BoxLayout):
             self.rv.data[0]['value'] = value or 'default new value'
             self.rv.refresh_from_data()
 
-class TPI1(TabbedPanelItem):
+class UARTTabWrap(TabbedPanelItem):
     mt1 = ObjectProperty(None)
     def __init__(self, **kwargs):
-        super(TPI1, self).__init__(**kwargs)
-        # self.mt1 = MainTab()
-        # self.add_widget(self.mt1)
+        super(UARTTabWrap, self).__init__(**kwargs)
+
 
 class CMDQTab(TabbedPanelItem):
     new_rv = ObjectProperty(None)
@@ -87,9 +79,10 @@ class CMDQTab(TabbedPanelItem):
     text_input = ObjectProperty(None)
     def __init__(self, **kwargs):
         super(CMDQTab, self).__init__(**kwargs)
-        # self.stuff() # cannot call functions in here, must do down in build phase
-    
+        # can't call something like initialize() here, needs to be done after build phase
+
     def initialize(self):
+        # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
         self.cmds_list = []
         self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'timeout':str(3), 'expect': '' },
@@ -128,8 +121,6 @@ class CMDQTab(TabbedPanelItem):
             print("COMMAND: ", str(timeout), str(cmdid))
             Clock.schedule_once(partial(self.sched.uplink, cmdid), timeout)
 
-            
-
     def dismiss_popup(self):
         self._popup.dismiss()
 
@@ -158,8 +149,8 @@ class CMDQTab(TabbedPanelItem):
         self.dismiss_popup()
 
 class Top(BoxLayout):
-    tpi1 = ObjectProperty(None)
-    tpi3 = ObjectProperty(None)
+    uart_tab = ObjectProperty(None)
+    sched_tab = ObjectProperty(None)
     stop = threading.Event()
 
     def __init__(self, **kwargs):
@@ -169,13 +160,10 @@ class Top(BoxLayout):
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
         # basically do constructor things here
-
-        self.tpi3.initialize()
-        self.tpi1.mt1.populate()
-        self.start_second_thread("dfjh")
-# Create tabbed panel item instances so we can reference their children
+        self.sched_tab.initialize()
+        self.uart_tab.mt1.populate()
+        self.start_second_thread("example arg")
   
-
     def start_second_thread(self, l_text):
         threading.Thread(target=self.second_thread, args=(l_text,)).start()
 
@@ -185,9 +173,7 @@ class Top(BoxLayout):
                 # Stop running this thread so the main Python process can exit.
                 #TODO: close the log
                 return
-
             self.read_serial()
-
 
     def read_serial(self):
         try:
@@ -195,13 +181,10 @@ class Top(BoxLayout):
                 offset = time.time()
 
                 while(not self.stop.is_set()):
-
                     while serial_TxQ.qsize() > 0:
                         ser.write(serial_TxQ.get().encode('utf-8'))
-
                     else:
                         line = ser.readline()
-
                         if len(line) > 1: # this catches the weird glitch where I only get out one character
                             print (time.time() - offset,':',line.decode('utf-8'))
                             self.update_label_text(str(line.decode('utf-8')))
@@ -218,13 +201,8 @@ class Top(BoxLayout):
 
     @mainthread
     def update_label_text(self, new_text):
-        # self.tpi1.mt1.ids.lab_2.text = new_text #going down through the hierarchy to access a property
-        # self.tpi2.ids.lb1.text = new_text # a top level ish label
-
-        # self.tpi1.mt1.rv_do_sthng() #CDS 6 - going down in the hierarchy a little, call the method that pokes down into the child object's methods
-        self.tpi1.mt1.insert_end(new_text)
+        self.uart_tab.mt1.insert_end(new_text)
     pass
-
 
 
 class HoustonApp(App): # the top level app class
@@ -242,7 +220,7 @@ class HoustonApp(App): # the top level app class
         return Top()
 
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
-        self.root.tpi3.rm_button_press(cmdid)
+        self.root.sched_tab.rm_button_press(cmdid)
 
 Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)
