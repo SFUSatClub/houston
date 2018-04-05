@@ -4,9 +4,16 @@
     sched_tab: sched_tab
     orientation: 'vertical'
 
-    Label:
-        size_hint_y: 0.05
-        text: 'kjhkjh'
+    AnchorLayout:
+        anchor_x: 'left'
+        anchor_y: 'top'
+        size_hint: None, None
+        size_y: 60
+
+        Image:
+            source: 'logo.png'
+            size_hint: None, None
+            size:200, 45
 
     BoxLayout: #space below the logo tab
         orientation: 'horizontal'
@@ -237,7 +244,7 @@
             color: 0.14, 0.14, 0.14, 1
        
 
-       
+
 # Stuff from elsewhere
 <LoadDialog>:
     BoxLayout:

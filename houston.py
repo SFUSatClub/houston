@@ -39,7 +39,8 @@ serial_TxQ = queue.Queue()
 # recycleview example: https://github.com/kivy/kivy/blob/master/examples/widgets/recycleview/basic_data.py
 # thread example: https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 # loader example: https://kivy.org/docs/api-kivy.uix.filechooser.html
-
+# useful:   https://stackoverflow.com/questions/46284504/kivy-getting-black-screen
+#           https://github.com/kivy/kivy/wiki/Snippets
 
 class MainTab(BoxLayout):
     label_wid = ObjectProperty()
