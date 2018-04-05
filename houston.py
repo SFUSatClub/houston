@@ -20,8 +20,12 @@ from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.clock import Clock, mainthread
 from kivy.app import ObjectProperty
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.lang import Builder
+
 from houston_utils import *
 import serial
 import queue
@@ -70,20 +74,25 @@ class MainTab(BoxLayout):
             self.rv.refresh_from_data()
 
 class TPI1(TabbedPanelItem):
-    def __init__(self):
-        TabbedPanelItem.__init__(self)
-        self.mt1 = MainTab()
-        self.add_widget(self.mt1)
+    mt1 = ObjectProperty(None)
+    def __init__(self, **kwargs):
+        super(TPI1, self).__init__(**kwargs)
+        # self.mt1 = MainTab()
+        # self.add_widget(self.mt1)
 
 class CMDQTab(TabbedPanelItem):
+    new_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
-
-    def __init__(self):
-        TabbedPanelItem.__init__(self)
+    def __init__(self, **kwargs):
+        super(CMDQTab, self).__init__(**kwargs)
+        # self.stuff() # cannot call functions in here, must do down in build phase
+    
+    def initialize(self):
+        print ("INITIALIZE")
         self.cmds_list = []
-        self.rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'timeout':str(3), 'expect': '' },
+        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'timeout':str(3), 'expect': '' },
                         {'cmdid': str(1), 'cmd': 'get heap', 'timeout':str(5), 'expect': '' }] 
         self.cmdid = 2 # unique command ID
         self.sched = CommandSchedule(serial_TxQ) # class for schedule handling (validation, queueing)
@@ -91,28 +100,28 @@ class CMDQTab(TabbedPanelItem):
     def add_to_sched(self):
         print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
         #TODO: make sure data is ok before adding it
-        self.rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
+        self.new_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
         self.cmdid += 1
 
     def clear_sched(self):
-        self.rv.data = []
+        self.new_rv.data = []
         self.cmdid = 0;
 
     def rm_button_press(self, cmdid):
-        for i, dic in enumerate(self.rv.data):
+        for i, dic in enumerate(self.new_rv.data):
             if dic['cmdid'] == cmdid:
                 break
 
-        del self.rv.data[i]
+        del self.new_rv.data[i]
 
     def insert(self, value):
-        self.rv.data.insert(0, {'value': value or 'default value'})
+        self.new_rv.data.insert(0, {'value': value or 'default value'})
 
     def uplink_schedule(self):
         # using the kivy clock, we schedule when to put cmds out on the tx queue
-        self.sched.new = self.rv.data[:] # add all of our commands
+        self.sched.new = self.new_rv.data[:] # add all of our commands
 
-        for command in self.rv.data:
+        for command in self.new_rv.data:
             timeout = int(command['timeout'])
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
@@ -148,21 +157,24 @@ class CMDQTab(TabbedPanelItem):
 
         self.dismiss_popup()
 
-class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
-    def __init__(self):
-        self.stop = threading.Event()
-        TabbedPanel.__init__(self)
+class Top(BoxLayout):
+    tpi1 = ObjectProperty(None)
+    tpi3 = ObjectProperty(None)
+    stop = threading.Event()
 
-# Create tabbed panel item instances so we can reference their children
-        self.tpi1 = TPI1()
-        self.add_widget(self.tpi1)
+    def __init__(self, **kwargs):
+        super(Top, self).__init__(**kwargs)
+        self.setup_tabs()
+    
+    def setup_tabs(self):
+        # since we can't call functions from the constructor of anything but the root element (top), 
+        # basically do constructor things here
 
-        self.cmd_q_tab = CMDQTab()
-        self.add_widget(self.cmd_q_tab)
-
+        self.tpi3.initialize()
         self.tpi1.mt1.populate()
-
         self.start_second_thread("dfjh")
+# Create tabbed panel item instances so we can reference their children
+  
 
     def start_second_thread(self, l_text):
         threading.Thread(target=self.second_thread, args=(l_text,)).start()
@@ -171,7 +183,7 @@ class Top(TabbedPanel): # top of the visual hierarchy, builds the tabbed panels
          while True:
             if self.stop.is_set():
                 # Stop running this thread so the main Python process can exit.
-                # close the log
+                #TODO: close the log
                 return
 
             self.read_serial()
@@ -220,15 +232,17 @@ class HoustonApp(App): # the top level app class
         # The Kivy event loop is about to stop, set a stop signal;
         # otherwise the app window will close, but the Python process will
         # keep running until all secondary threads exit.
+
+        # root is a reference to the Top instance, auto populated by Kivy
         self.root.stop.set()
         print("Stopping.")
 
     def build(self):
-        self.top = Top()
-        return self.top
+        # must immediately return Top() here, cannot do something like self.top = Top, and call other functions
+        return Top()
 
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
-        self.top.cmd_q_tab.rm_button_press(cmdid)
+        self.root.tpi3.rm_button_press(cmdid)
 
 Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)

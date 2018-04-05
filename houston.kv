@@ -1,24 +1,37 @@
 #:kivy 1.0.9
-
 <Top>:
-    size_hint: 1, .95
-    pos_hint: {'center_x': .5, 'center_y': .475}
-    do_default_tab: False
+    tpi1: tpi1
+    tpi3: tpi3
 
+    # Label:
+    #     text: 'kjhkjh'
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: 1, 0.95
+        TabbedPanel:
+            size_hint: 1, .95
+            pos_hint: {'center_x': .5, 'center_y': .475}
+            do_default_tab: False
+
+            TPI1
+                id: tpi1
+            CMDQTab
+                id: tpi3
 
     # TPI1 and CMDQTAB  are added in python since apparently they can't be added here while maintaining hierarchy reference ability .... :/
 
 <TPI1>: # the main UART tab
-    id: tpi1
+    # id: tpi1
+    mt1: mt1
     text: 'UART'
-    MainTab
+    MainTab:
+        id: mt1
 
 
 <CMDQTab>: # the command queue tab
-    id: tpi3
+   # id: tpi3
     text: 'Queue'
-    # pass up the references for easy access in python
-    rv: rv
+    new_rv: new_rv
     cmd_entry: cmd_entry
     cmd_expected_entry: cmd_expected_entry
     cmd_timeout_entry: cmd_timeout_entry
@@ -71,7 +84,7 @@
                 on_press: root.clear_sched()
 
         RecycleView:
-            id: rv
+            id: new_rv
             scroll_type: ['bars', 'content']
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
@@ -105,7 +118,6 @@
 
 
 <MainTab>:
-    id: mt1
     label_wid: my_custom_label # the label_wid handle can be used to access the label from higher up
     txt_entry: txt_entry
    # rv_handle: my_rv #CDS 2 - assign the id to a handle at the top class level
