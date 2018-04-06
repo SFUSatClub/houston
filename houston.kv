@@ -45,7 +45,8 @@
     cmd_epoch_entry: cmd_epoch_entry
     cmd_expected_entry: cmd_expected_entry
     cmd_timeout_entry: cmd_timeout_entry
-    
+    cmd_rel: cmd_rel
+
     BoxLayout: # panels must have only one direct child
         id: blx
         orientation:'vertical'
@@ -113,6 +114,7 @@
                 CheckBox:
                     color: 0.5, 0.9, 0.66, 1
                     active: 'True'
+                    id: cmd_rel
 
 
         RecycleView:
@@ -282,7 +284,8 @@
     cmd: ''
     timeout: ''
     expect: ''
-    epoch:''
+    epoch: ''
+    rel:''
     BoxLayout:
         size_hint_x: 1
         orientation: 'horizontal'
@@ -296,7 +299,7 @@
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.2
-            text: str('+'+str(root.epoch))
+            text: root.epoch #str('+'+str(epoch)) if (root.rel == 'True') else str('| '+str(epoch)+ ' |')
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.22

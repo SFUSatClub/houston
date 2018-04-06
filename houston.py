@@ -25,6 +25,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.lang import Builder
+from kivy.properties import NumericProperty
 
 from houston_utils import *
 import serial
@@ -32,7 +33,7 @@ import queue
 
 serialPort = '/dev/cu.usbserial-A700eYE7'
 serial_TxQ = queue.Queue()
-sched = CommandSchedule(serial_TxQ)
+test = SatTest(serial_TxQ)
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -74,6 +75,11 @@ class UARTTabWrap(TabbedPanelItem):
         super(UARTTabWrap, self).__init__(**kwargs)
 
 
+# class Cmdrow(BoxLayout):
+#     epoch = NumericProperty(None)
+#     def __init__(self, **kwargs):
+#         super(Cmdrow, self).__init__(**kwargs)
+
 class CMDQTab(TabbedPanelItem):
     new_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
@@ -88,8 +94,8 @@ class CMDQTab(TabbedPanelItem):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
         self.cmds_list = []
-        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'epoch': str(3), 'timeout': str(1), 'expect': 'SAFE', 'rel': True},
-                        {'cmdid': str(1), 'cmd': 'get heap','epoch': str(5), 'timeout': str(2), 'expect': 'heap: 2342', 'rel': True }] 
+        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'epoch': str(3), 'timeout': str(1), 'expect': 'SAFE', 'rel': 'True'},
+                        {'cmdid': str(1), 'cmd': 'get heap','epoch': str(5), 'timeout': str(2), 'expect': 'heap: 2342', 'rel': 'True' }] 
         self.cmdid = 2 # unique command ID
         
     def add_to_sched(self):
@@ -114,14 +120,16 @@ class CMDQTab(TabbedPanelItem):
 
     def uplink_schedule(self):
         # using the kivy clock, we schedule when to put cmds out on the tx queue
-        sched.new = self.new_rv.data[:] # add all of our commands
+        test.zero_epoch()
+        test.add_schedule(self.new_rv.data[:]) # add all of our commands
 
         for command in self.new_rv.data:
-            epoch_to_send = int(command['epoch'])
+            epoch_to_send = int(command['epoch']) # for relative, just subtract current sat epoch
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
             print("COMMAND: ", str(epoch_to_send), str(cmdid))
-            Clock.schedule_once(partial(sched.uplink, cmdid), epoch_to_send)
+            Clock.schedule_once(partial(test.uplink, cmdid), epoch_to_send)
+            # RA: schedule the command timeout here at time epoch + timeout 
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -152,6 +160,10 @@ class CMDQTab(TabbedPanelItem):
 
 class RespTab(TabbedPanelItem):
     resp_rv = ObjectProperty(None)
+
+    # command info is added to here when the commands are uplinked
+    # results come in with timestamp
+
 
     def __init__(self, **kwargs):
         super(RespTab, self).__init__(**kwargs)
@@ -201,6 +213,13 @@ class Top(BoxLayout):
                         if len(line) > 1: # this catches the weird glitch where I only get out one character
                             print (time.time() - offset,':',line.decode('utf-8'))
                             self.update_label_text(str(line.decode('utf-8')))
+                            # app.serial_function(str(line.decode('utf-8')))
+
+                            # add it to the test handler class
+                            # adds epoch received and the data
+                            # from the commands in the pending list, look that this epoch is not greater than timeout, and that data is reasonable
+                            # if so, it's a pass
+                            # else, it's an orphan print (which is ok)
                 else:
                     ser.Close()
 
@@ -234,6 +253,9 @@ class HoustonApp(App): # the top level app class
 
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
         self.root.sched_tab.rm_button_press(cmdid)
+
+    def serial_function(self, data):
+        print("Serial fun, " + data)
 
 Factory.register('LoadDialog', cls=LoadDialog)
 Factory.register('SaveDialog', cls=SaveDialog)
