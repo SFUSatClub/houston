@@ -27,6 +27,9 @@
                 id: uart_tab
             CMDQTab:
                 id: sched_tab
+            RespTab:
+                id: resp_tab
+            
 
 <UARTTabWrap>: # the main UART tab
     mt1: mt1
@@ -39,6 +42,7 @@
     text: 'Queue'
     new_rv: new_rv
     cmd_entry: cmd_entry
+    cmd_epoch_entry: cmd_epoch_entry
     cmd_expected_entry: cmd_expected_entry
     cmd_timeout_entry: cmd_timeout_entry
     
@@ -47,20 +51,22 @@
         orientation:'vertical'
         
         GridLayout: # container for the column labels
-            cols: 3
+            cols: 4
             rows: 1
             size_hint_y: None
             height: 50
             Label:
                 text: 'Command'
             Label:
-                text: 'Timeout'
+                text: 'Epoch'
             Label:
                 text: 'Expected Response'
+            Label:
+                text: 'Timeout'
         
         GridLayout: # for buttons
-            cols: 3
-            rows: 3
+            cols: 4
+            rows: 2
             size_hint_y: None
             height: 200
             height: dp(108)
@@ -73,7 +79,7 @@
                 padding: dp(10), dp(5), 0, 0
 
             TextInput:
-                id: cmd_timeout_entry
+                id: cmd_epoch_entry
                 size_hint_x: 1
                 hint_text: 'Timeout'
                 padding: dp(10), dp(5), 0, 0
@@ -83,6 +89,12 @@
                 size_hint_x: 1
                 hint_text: 'Expected Response'
                 padding: dp(10), dp(5), 0, 0
+
+            TextInput:
+                id: cmd_timeout_entry
+                size_hint_x: 1
+                hint_text: 'Timeout'
+                padding: dp(10), dp(5), 0, 0
             Button:
                 text: 'Add to Schedule'
                 on_press: root.add_to_sched()
@@ -90,6 +102,18 @@
             Button:
                 text: 'Clear Schedule'
                 on_press: root.clear_sched()
+
+            BoxLayout:
+                orientation:'horizontal'
+
+                Label:
+                    text: 'Relative'
+                    text_align: 'right'
+                
+                CheckBox:
+                    color: 0.5, 0.9, 0.66, 1
+                    active: 'True'
+
 
         RecycleView:
             id: new_rv
@@ -188,6 +212,46 @@
                 on_press: root.send_button_press()
 
 
+<RespTab>: # tab for responses
+    text: 'Response'
+    resp_rv: resp_rv
+    BoxLayout:
+        orientation:'vertical'
+
+        GridLayout: # container for the column labels
+            cols: 4
+            rows: 1
+            size_hint_y: None
+            height: 50
+            Label:
+                text: 'ID'
+                size_hint_x: 0.1
+            Label:
+                text: 'Command'
+                size_hint_x: 0.3
+            Label:
+                text: 'Expected Response'
+                size_hint_x: 0.3
+            Label:
+                text: 'Status'
+                size_hint_x: 0.3
+        
+        RecycleView:
+            id: resp_rv
+            scroll_type: ['bars', 'content']
+            scroll_wheel_distance: dp(114)
+            bar_width: dp(10)
+            viewclass: 'Resprow'
+            size_hint_y: 0.8
+            RecycleGridLayout:
+                default_size: None, dp(30)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: dp(2)
+                cols: 1
+
 <UARTRow@BoxLayout>: # row class for the UART telemetry
     canvas.before:
         Color:
@@ -218,6 +282,49 @@
     cmd: ''
     timeout: ''
     expect: ''
+    epoch:''
+    BoxLayout:
+        size_hint_x: 1
+        orientation: 'horizontal'
+        Label:
+            size_hint_x: 0.05
+            text: str(root.cmdid)
+            color: 0.3, 0.3, 0.3, 1
+        Label:
+            size_hint_x: 0.2
+            text: root.cmd
+            color: 0.0, 0.9, 0.66, 1
+        Label:
+            size_hint_x: 0.2
+            text: str('+'+str(root.epoch))
+            color: 0.0, 0.9, 0.66, 1
+        Label:
+            size_hint_x: 0.22
+            text: root.expect
+            color: 0.0, 0.9, 0.66, 1
+        Label:
+            size_hint_x: 0.2
+            text: str(root.timeout)
+            color: 0.0, 0.9, 0.66, 1
+
+        Button:
+            text: 'X'
+            size_hint_x: 0.05
+            on_press: app.rm_button_press(root.cmdid)
+            color: 0.14, 0.14, 0.14, 1
+       
+<Resprow@BoxLayout>: 
+    canvas.before:
+        Color:
+            rgba: 0.14, 0.14, 0.14, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    # these allow us to pop data in from py - these are rv.data dict keys
+    cmdid: ''
+    cmd: ''
+    expect: ''
+    status: ''
     BoxLayout:
         size_hint_x: 1
         orientation: 'horizontal'
@@ -231,18 +338,12 @@
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.22
-            text: root.timeout
+            text: root.expect
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.22
-            text: root.expect
+            text: root.status
             color: 0.0, 0.9, 0.66, 1
-        Button:
-            text: 'X'
-            size_hint_x: 0.05
-            on_press: app.rm_button_press(root.cmdid)
-            color: 0.14, 0.14, 0.14, 1
-       
 
 
 # Stuff from elsewhere

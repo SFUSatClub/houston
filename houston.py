@@ -32,6 +32,7 @@ import queue
 
 serialPort = '/dev/cu.usbserial-A700eYE7'
 serial_TxQ = queue.Queue()
+sched = CommandSchedule(serial_TxQ)
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -78,6 +79,7 @@ class CMDQTab(TabbedPanelItem):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
+    
     def __init__(self, **kwargs):
         super(CMDQTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
@@ -86,15 +88,14 @@ class CMDQTab(TabbedPanelItem):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
         self.cmds_list = []
-        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'timeout':str(3), 'expect': '' },
-                        {'cmdid': str(1), 'cmd': 'get heap', 'timeout':str(5), 'expect': '' }] 
+        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'epoch': str(3), 'timeout': str(1), 'expect': 'SAFE', 'rel': True},
+                        {'cmdid': str(1), 'cmd': 'get heap','epoch': str(5), 'timeout': str(2), 'expect': 'heap: 2342', 'rel': True }] 
         self.cmdid = 2 # unique command ID
-        self.sched = CommandSchedule(serial_TxQ) # class for schedule handling (validation, queueing)
         
     def add_to_sched(self):
         print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
         #TODO: make sure data is ok before adding it
-        self.new_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
+        self.new_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'epoch': self.cmd_epoch_entry.text,'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
         self.cmdid += 1
 
     def clear_sched(self):
@@ -113,14 +114,14 @@ class CMDQTab(TabbedPanelItem):
 
     def uplink_schedule(self):
         # using the kivy clock, we schedule when to put cmds out on the tx queue
-        self.sched.new = self.new_rv.data[:] # add all of our commands
+        sched.new = self.new_rv.data[:] # add all of our commands
 
         for command in self.new_rv.data:
-            timeout = int(command['timeout'])
+            epoch_to_send = int(command['epoch'])
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
-            print("COMMAND: ", str(timeout), str(cmdid))
-            Clock.schedule_once(partial(self.sched.uplink, cmdid), timeout)
+            print("COMMAND: ", str(epoch_to_send), str(cmdid))
+            Clock.schedule_once(partial(sched.uplink, cmdid), epoch_to_send)
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -149,9 +150,20 @@ class CMDQTab(TabbedPanelItem):
 
         self.dismiss_popup()
 
+class RespTab(TabbedPanelItem):
+    resp_rv = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(RespTab, self).__init__(**kwargs)
+
+    def update_resp(self):
+        self.resp_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
+
+
 class Top(BoxLayout):
     uart_tab = ObjectProperty(None)
     sched_tab = ObjectProperty(None)
+    resp_tab = ObjectProperty(None)
     stop = threading.Event()
 
     def __init__(self, **kwargs):

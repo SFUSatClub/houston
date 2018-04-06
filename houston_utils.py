@@ -6,7 +6,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.factory import Factory
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
-
+import time
 import os
 
 
@@ -27,6 +27,7 @@ class CommandSchedule():
         self.acknowledged = [] # commands that have been acknowledged properly
         self.errored = [] # commands that timed out
         self.tx_queue = tx_queue
+        self.epoch = time.time
 
     def uplink(self, cmdid, dt):
         print("CMDID_in", str(cmdid))
