@@ -68,7 +68,7 @@ class SatTest():
         #   - responses to immediate commands
         #   - responses to scheduled commands are stored and can be requested, since we won't always be in contact 
 
-        
+
         # Standard telem:
         # - parse telem packet and update views. This is things like epoch, battery state, etc.
         # - every time we get one, update the HUD. Have each set available as an expandable row in a list for examination
@@ -84,6 +84,16 @@ class SatTest():
         # Command handling on sat: 
         # - if it's an immediate command, send out the response on radio/uart right away (this is for mission and testing)
         # - if it's a sat-scheduled command, log the response so we can pull it down later 
+        # - if you want to do something like read a file, you could schedule a read command of that file at the time of next downlink
+
+        # Ottawa test:
+        # put in/out of different modes, observe that the telem is reflecting that
+        #       - ex: safe mode, a bunch of tasks should be suspended. we can check that from a get tasks command
+        #       - ex: low power mode, check that current has dropped
+        #       - these things could be different modules that we load up to create a full test, then we run the whole thing
+        # schedule commands for the future (such as a chime pass), verify that they execute
+        # check that telem is nominal
+
 
 
 
