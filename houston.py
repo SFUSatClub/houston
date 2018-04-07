@@ -44,14 +44,16 @@ test = SatTest(serial_TxQ)
 # useful:   https://stackoverflow.com/questions/46284504/kivy-getting-black-screen
 #           https://github.com/kivy/kivy/wiki/Snippets
 
-class MainTab(BoxLayout):
-    label_wid = ObjectProperty()
+class UARTTab(TabbedPanelItem):
     rv = ObjectProperty()
-    txt_entry = ObjectProperty() # text input box
+    uart_entry = ObjectProperty() # text input box
+
+    def __init__(self, **kwargs):
+        super(UARTTab, self).__init__(**kwargs)
 
     def send_button_press(self, *args):
-        print('Sending_button:' + self.txt_entry.text)
-        serial_TxQ.put(self.txt_entry.text)
+        print('Sending_button:' + self.uart_entry.text)
+        serial_TxQ.put(self.uart_entry.text)
 
     def on_enter(self, *args): # gets text from the input box on enter
         thing = args[0]
@@ -62,17 +64,12 @@ class MainTab(BoxLayout):
         self.rv.data = [{'value': 'init'}]
 
     def insert_end(self, value):
-        self.rv.data.append({'value': value or 'default value'})
+        self.rv.data.append({'value': value})
 
     def update(self, value):
         if self.rv.data:
-            self.rv.data[0]['value'] = value or 'default new value'
+            self.rv.data[0]['value'] = value 
             self.rv.refresh_from_data()
-
-class UARTTabWrap(TabbedPanelItem):
-    mt1 = ObjectProperty(None)
-    def __init__(self, **kwargs):
-        super(UARTTabWrap, self).__init__(**kwargs)
 
 
 # class Cmdrow(BoxLayout):
@@ -81,7 +78,7 @@ class UARTTabWrap(TabbedPanelItem):
 #         super(Cmdrow, self).__init__(**kwargs)
 
 class CMDQTab(TabbedPanelItem):
-    new_rv = ObjectProperty(None)
+    sched_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
@@ -94,36 +91,36 @@ class CMDQTab(TabbedPanelItem):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
         self.cmds_list = []
-        self.new_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'epoch': str(3), 'timeout': str(1), 'expect': 'SAFE', 'rel': 'True'},
+        self.sched_rv.data = [{'cmdid': str(0), 'cmd': 'state get', 'epoch': str(3), 'timeout': str(1), 'expect': 'SAFE', 'rel': 'True'},
                         {'cmdid': str(1), 'cmd': 'get heap','epoch': str(5), 'timeout': str(2), 'expect': 'heap: 2342', 'rel': 'True' }] 
         self.cmdid = 2 # unique command ID
         
     def add_to_sched(self):
         print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
         #TODO: make sure data is ok before adding it
-        self.new_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'epoch': self.cmd_epoch_entry.text,'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
+        self.sched_rv.data.append({'cmdid':str(self.cmdid), 'cmd': self.cmd_entry.text, 'epoch': self.cmd_epoch_entry.text,'timeout':self.cmd_timeout_entry.text, 'expect': self.cmd_expected_entry.text})
         self.cmdid += 1
 
     def clear_sched(self):
-        self.new_rv.data = []
+        self.sched_rv.data = []
         self.cmdid = 0;
 
     def rm_button_press(self, cmdid):
-        for i, dic in enumerate(self.new_rv.data):
+        for i, dic in enumerate(self.sched_rv.data):
             if dic['cmdid'] == cmdid:
                 break
 
-        del self.new_rv.data[i]
+        del self.sched_rv.data[i]
 
     def insert(self, value):
-        self.new_rv.data.insert(0, {'value': value or 'default value'})
+        self.sched_rv.data.insert(0, {'value': value or 'default value'})
 
     def uplink_schedule(self):
         # using the kivy clock, we schedule when to put cmds out on the tx queue
         test.zero_epoch()
-        test.add_schedule(self.new_rv.data[:]) # add all of our commands
+        test.add_schedule(self.sched_rv.data[:]) # add all of our commands
 
-        for command in self.new_rv.data:
+        for command in self.sched_rv.data:
             epoch_to_send = int(command['epoch']) # for relative, just subtract current sat epoch
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
@@ -186,7 +183,7 @@ class Top(BoxLayout):
         # since we can't call functions from the constructor of anything but the root element (top), 
         # basically do constructor things here
         self.sched_tab.initialize()
-        self.uart_tab.mt1.populate()
+        self.uart_tab.populate()
         self.start_second_thread("example arg")
   
     def start_second_thread(self, l_text):
@@ -198,9 +195,9 @@ class Top(BoxLayout):
                 # Stop running this thread so the main Python process can exit.
                 #TODO: close the log
                 return
-            self.read_serial()
+            self.do_serial()
 
-    def read_serial(self):
+    def do_serial(self):
         try:
             with serial.Serial(serialPort, 115200, timeout = 10) as ser:
                 offset = time.time()
@@ -229,11 +226,11 @@ class Top(BoxLayout):
                 time.sleep(0.5)
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
-                self.read_serial()
+                self.do_serial()
 
     @mainthread
     def update_label_text(self, new_text):
-        self.uart_tab.mt1.insert_end(new_text)
+        self.uart_tab.insert_end(new_text)
     pass
 
 

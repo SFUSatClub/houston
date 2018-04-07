@@ -23,7 +23,7 @@
             pos_hint: {'center_x': .5, 'center_y': .475}
             do_default_tab: False
 
-            UARTTabWrap:
+            UARTTab:
                 id: uart_tab
             CMDQTab:
                 id: sched_tab
@@ -31,16 +31,72 @@
                 id: resp_tab
             
 
-<UARTTabWrap>: # the main UART tab
-    mt1: mt1
+<UARTTab>: # the main UART tab
     text: 'UART'
-    MainTab:
-        id: mt1
+        
+    rv: rv
+    BoxLayout: 
+        id: bl1
+        size_hint_y: 1
+        size_hint_x: 1
+        orientation: 'vertical'
+
+        BoxLayout: # layout for main area
+            id: main_area
+            size_hint_y: 0.9
+            size_hint_x: 1
+            orientation: 'vertical'
+
+            BoxLayout: # top bar
+                size_hint_x: 1
+                size_hint_y: 0.05
+                Label:
+                    id: lab_2
+                    text: 'Some Status Thing'
+                Label:
+                    id: my_custom_label
+                    text: 'Other Status Thing'
+
+            BoxLayout: # main data list
+                size_hint_x: 1
+                size_hint_y: 0.9
+                RecycleView:
+                    id: rv
+                    scroll_type: ['bars', 'content']
+                    scroll_wheel_distance: dp(114)
+                    bar_width: dp(10)
+                    viewclass: 'UARTRow'
+                    RecycleBoxLayout:
+                        default_size: None, dp(30) # dp(30) is height
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        orientation: 'vertical'
+                        spacing: dp(2)
+
+
+        BoxLayout: # layout for command entry
+            size_hint_y: 0.1
+            size_hint_x: 1
+            TextInput:
+                id: uart_entry
+                text: ""
+                size_hint_x: .8
+                spacing: .2, .2
+                multiline: False
+                on_text_validate: root.on_enter(*args) # can either call root. or app. - in this case, root is MainTab class
+
+            Button:
+                text: 'Send'
+                size_hint_y: 1
+                size_hint_x: 0.2
+                on_press: root.send_button_press()
+
 
 
 <CMDQTab>: # the command queue tab
-    text: 'Queue'
-    new_rv: new_rv
+    text: 'Schedule'
+    sched_rv: sched_rv
     cmd_entry: cmd_entry
     cmd_epoch_entry: cmd_epoch_entry
     cmd_expected_entry: cmd_expected_entry
@@ -48,7 +104,6 @@
     cmd_rel: cmd_rel
 
     BoxLayout: # panels must have only one direct child
-        id: blx
         orientation:'vertical'
         
         GridLayout: # container for the column labels
@@ -118,7 +173,7 @@
 
 
         RecycleView:
-            id: new_rv
+            id: sched_rv
             scroll_type: ['bars', 'content']
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
@@ -149,70 +204,7 @@
                 Button:
                     text: 'Uplink Schedule'
                     on_release: root.uplink_schedule()
-
-
-<MainTab>: 
-    label_wid: my_custom_label # the label_wid handle can be used to access the label from higher up
-    txt_entry: txt_entry
-    rv: rv
-
-    BoxLayout: 
-        id: bl1
-        size_hint_y: 1
-        size_hint_x: 1
-        orientation: 'vertical'
-
-        BoxLayout: # layout for main area
-            id: main_area
-            size_hint_y: 0.9
-            size_hint_x: 1
-            orientation: 'vertical'
-
-            BoxLayout: # top bar
-                size_hint_x: 1
-                size_hint_y: 0.05
-                Label:
-                    id: lab_2
-                    text: 'Some Status Thing'
-                Label:
-                    id: my_custom_label
-                    text: 'Other Status Thing'
-
-            BoxLayout: # main data list
-                size_hint_x: 1
-                size_hint_y: 0.9
-                RecycleView:
-                    id: rv
-                    scroll_type: ['bars', 'content']
-                    scroll_wheel_distance: dp(114)
-                    bar_width: dp(10)
-                    viewclass: 'UARTRow'
-                    RecycleBoxLayout:
-                        default_size: None, dp(30) # dp(30) is height
-                        default_size_hint: 1, None
-                        size_hint_y: None
-                        height: self.minimum_height
-                        orientation: 'vertical'
-                        spacing: dp(2)
-
-
-        BoxLayout: # layout for command entry
-            size_hint_y: 0.1
-            size_hint_x: 1
-            TextInput:
-                id: txt_entry
-                text: ""
-                size_hint_x: .8
-                spacing: .2, .2
-                multiline: False
-                on_text_validate: root.on_enter(*args) # can either call root. or app. - in this case, root is MainTab class
-
-            Button:
-                text: 'Send'
-                size_hint_y: 1
-                size_hint_x: 0.2
-                on_press: root.send_button_press()
-
+    
 
 <RespTab>: # tab for responses
     text: 'Response'
@@ -266,8 +258,6 @@
         text: root.value
         padding_x: 20
         text_size: root.width, None
-        size_hint_y: None
-        size: self.texture_size
         halign: 'left'
         valign: 'middle'
         color: 0.92, 0.9, 0.66, 1
