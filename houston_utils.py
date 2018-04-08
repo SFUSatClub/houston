@@ -45,9 +45,7 @@ class SatTest():
 
     def uplink(self, cmdid, dt):
         print("CMDID_in", str(cmdid))
-        for i, dic in enumerate(self.new):
-            if dic['cmdid'] == cmdid:
-                break
+        i = val_match_dict_in_list(self.new, 'cmdid', cmdid)
         command = self.new[i]
         
         # rm from new list, put on pending list
@@ -95,15 +93,33 @@ class SatTest():
         # check that telem is nominal
 
 
+    def command_timeout(self, cmdid, dt): # anything called by Clock should have dt argument
+        """ Called by Kivy at timeout of command. 
+        - if command is still on pending, it hasn't received a good response, so time it out
+        """
 
-
-    def command_timeout(self, cmdid):
-        pass
+        print('Checking timeout of command ID: ', str(cmdid))
+        i = val_match_dict_in_list(self.pending[:], 'cmdid', str(cmdid))
+        if i != -1: # command is in pending and therefore timed out
+            self.errored.append(self.pending[i])
+            del self.pending[i]
+            print("Command ID ", str(cmdid), "placed in errored.")
+        return
+        # pass
         # this will be called at the timeout time for a command by kivy clock
         # search the pending list for the command ID
         #   - if not there, no worries we've processed the command before timeout
         #   - if there, pull off and add to failed command list
 
     
+def val_match_dict_in_list(in_list, key, value):
+    """ returns the index of a dict in a list of dicts where 
+    the value of a particular entry matches"""
+    for i, dic in enumerate(in_list):
+            if dic[key] == value:
+                break
+    else: 
+        i = -1
+    return i 
 
 

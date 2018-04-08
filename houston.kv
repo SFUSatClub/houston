@@ -25,7 +25,7 @@
 
             UARTTab:
                 id: uart_tab
-            CMDQTab:
+            SCHEDTab:
                 id: sched_tab
             RespTab:
                 id: resp_tab
@@ -33,7 +33,7 @@
 
 <UARTTab>: # the main UART tab
     text: 'UART'
-        
+    uart_entry: uart_entry
     rv: rv
     BoxLayout: 
         id: bl1
@@ -94,7 +94,7 @@
 
 
 
-<CMDQTab>: # the command queue tab
+<SCHEDTab>: # the command queue tab
     text: 'Schedule'
     sched_rv: sched_rv
     cmd_entry: cmd_entry
@@ -254,13 +254,15 @@
             size: self.size
             pos: self.pos
     value: '' # this is the key of the dict item that will be used
-    Label:
-        text: root.value
-        padding_x: 20
-        text_size: root.width, None
-        halign: 'left'
-        valign: 'middle'
-        color: 0.92, 0.9, 0.66, 1
+    BoxLayout:
+        size_hint_x: 1
+        orientation: 'horizontal'
+        Label:
+            text: root.value
+            text_size: root.width, None
+            padding: 20, 10
+            halign: 'left'
+            color: 0.92, 0.9, 0.66, 1
 
 <Cmdrow@BoxLayout>: # the row class for the command system - pulls out several different items and displays nicely
     canvas.before:

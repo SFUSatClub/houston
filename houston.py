@@ -77,14 +77,14 @@ class UARTTab(TabbedPanelItem):
 #     def __init__(self, **kwargs):
 #         super(Cmdrow, self).__init__(**kwargs)
 
-class CMDQTab(TabbedPanelItem):
+class SCHEDTab(TabbedPanelItem):
     sched_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
     
     def __init__(self, **kwargs):
-        super(CMDQTab, self).__init__(**kwargs)
+        super(SCHEDTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
 
     def initialize(self):
@@ -106,17 +106,16 @@ class CMDQTab(TabbedPanelItem):
         self.cmdid = 0;
 
     def rm_button_press(self, cmdid):
-        for i, dic in enumerate(self.sched_rv.data):
-            if dic['cmdid'] == cmdid:
-                break
-
+        """ remove command from the list by ID"""
+        i = val_match_dict_in_list(self.sched_rv.data, 'cmdid', cmdid)
         del self.sched_rv.data[i]
 
     def insert(self, value):
         self.sched_rv.data.insert(0, {'value': value or 'default value'})
 
     def uplink_schedule(self):
-        # using the kivy clock, we schedule when to put cmds out on the tx queue
+        """ using the kivy clock, we schedule when to put cmds out on the tx queue
+        """
         test.zero_epoch()
         test.add_schedule(self.sched_rv.data[:]) # add all of our commands
 
@@ -126,7 +125,7 @@ class CMDQTab(TabbedPanelItem):
             #TODO: determine schedule time from now based on relative flag
             print("COMMAND: ", str(epoch_to_send), str(cmdid))
             Clock.schedule_once(partial(test.uplink, cmdid), epoch_to_send)
-            # RA: schedule the command timeout here at time epoch + timeout 
+            Clock.schedule_once(partial(test.command_timeout, cmdid), epoch_to_send + int(command['timeout']))
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -223,7 +222,7 @@ class Top(BoxLayout):
         except Exception as error:
             if not self.stop.is_set():
                 print(error)
-                time.sleep(0.5)
+                time.sleep(2)
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()
