@@ -84,7 +84,7 @@ class Top(BoxLayout):
     def do_serial(self):
         try:
             with serial.Serial(serialPort, 115200, timeout = 10) as ser:
-                offset = time.time()
+                self.offset = time.time() # time we start things up
 
                 while(not self.stop.is_set()):
                     while serial_TxQ.qsize() > 0:
@@ -92,8 +92,8 @@ class Top(BoxLayout):
                     else:
                         line = ser.readline()
                         if len(line) > 1: # this catches the weird glitch where I only get out one character
-                            print (time.time() - offset,':',line.decode('utf-8'))
-                            self.update_label_text(str(line.decode('utf-8')))
+                            self.dispatch_telem(line)
+
 
                 else:
                     ser.Close()
@@ -105,6 +105,11 @@ class Top(BoxLayout):
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()
+
+    def dispatch_telem(self, line):
+        """ Here we do several different things with the telemetry that comes in """
+        print (time.time() - self.offset,':',line.decode('utf-8'))
+        self.update_label_text(str(line.decode('utf-8')))
 
     @mainthread
     def update_label_text(self, new_text):

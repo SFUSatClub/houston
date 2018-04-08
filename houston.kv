@@ -7,17 +7,17 @@
     AnchorLayout:
         anchor_x: 'left'
         anchor_y: 'top'
-        size_hint: None, None
-        size_y: 60
+        size_hint: 1, 0.01
+        # size_y: 60
 
         Image:
             source: 'logo.png'
             size_hint: None, None
-            size:200, 45
+            size: 300, 68
 
     BoxLayout: #space below the logo tab
         orientation: 'horizontal'
-        size_hint: 1, 0.95
+        size_hint: 1, 0.99
         TabbedPanel:
             size_hint: 1, .95
             pos_hint: {'center_x': .5, 'center_y': .475}
