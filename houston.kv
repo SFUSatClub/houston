@@ -32,7 +32,7 @@
             
 
 <UARTTab>: # the main UART tab
-    text: 'UART'
+    text: 'Telem'
     uart_entry: uart_entry
     rv: rv
     BoxLayout: 
@@ -59,7 +59,7 @@
 
             BoxLayout: # main data list
                 size_hint_x: 1
-                size_hint_y: 0.9
+                size_hint_y: 0.85
                 RecycleView:
                     id: rv
                     scroll_type: ['bars', 'content']
@@ -76,13 +76,14 @@
 
 
         BoxLayout: # layout for command entry
-            size_hint_y: 0.1
+            size_hint_y: 0.05
             size_hint_x: 1
             TextInput:
                 id: uart_entry
                 text: ""
-                size_hint_x: .8
+                size_hint: .8, 1
                 spacing: .2, .2
+                # height: dp(30)
                 multiline: False
                 on_text_validate: root.on_enter(*args) # can either call root. or app. - in this case, root is MainTab class
 
@@ -124,8 +125,7 @@
             cols: 4
             rows: 2
             size_hint_y: None
-            height: 200
-            height: dp(108)
+            height: dp(90)
             padding: dp(8)
             spacing: dp(16)
             TextInput:

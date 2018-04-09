@@ -13,6 +13,7 @@ from string import ascii_lowercase
 import time
 import random
 from functools import partial
+from collections import deque
 
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -34,9 +35,11 @@ from UARTTab import *
 from RESPTab import *
 from SCHEDTab import *
 
-serialPort = '/dev/cu.usbserial-A700eYE7'
+# serialPort = '/dev/cu.usbserial-A700eYE7'
+serialPort = '/dev/tty.usbserial-TIXRGQDLB'
 serial_TxQ = queue.Queue()
-test = SatTest(serial_TxQ)
+txQ = deque()
+test = SatTest(txQ)
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -66,50 +69,61 @@ class Top(BoxLayout):
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
         # basically do constructor things here
-        self.sched_tab.initialize(serial_TxQ, test)
-        self.uart_tab.populate(serial_TxQ)
+        self.sched_tab.initialize(txQ, test)
+        self.uart_tab.populate(txQ)
         self.start_second_thread("example arg")
   
     def start_second_thread(self, l_text):
-        threading.Thread(target=self.second_thread, args=(l_text,)).start()
+        print('thread started')
+        threading.Thread(target=self.second_thread).start()
 
-    def second_thread(self, label_text):
-         while True:
-            if self.stop.is_set():
-                # Stop running this thread so the main Python process can exit.
-                #TODO: close the log
-                return
+    def second_thread(self):
+        while not self.stop.is_set():
             self.do_serial()
+        else:
+            return
 
     def do_serial(self):
         try:
-            with serial.Serial(serialPort, 115200, timeout = 10) as ser:
-                self.offset = time.time() # time we start things up
+            # with serial.Serial(serialPort, 115200, timeout = 10) as ser:
+            ser = serial.Serial(serialPort, 115200, timeout = 10) 
+            self.offset = time.time() # time we start things up
 
-                while(not self.stop.is_set()):
-                    while serial_TxQ.qsize() > 0:
-                        ser.write(serial_TxQ.get().encode('utf-8'))
-                    else:
-                        line = ser.readline()
-                        if len(line) > 1: # this catches the weird glitch where I only get out one character
-                            self.dispatch_telem(line)
-
-
+            while(ser.isOpen() and not self.stop.is_set()):
+                if ser.inWaiting() > 0:
+                    line = ser.readline()  #read the bytes and convert from binary array to ASCII
+                    if len(line) > 1: # this catches the weird glitch where I only get out one character
+                        self.dispatch_telem(line)
                 else:
-                    ser.Close()
+                    try:
+                        cmd = str(txQ.popleft())
+                        #  serial_TxQ.qsize() > 0:
+                        # print('yuh')
+                        # cmd = str(serial_TxQ.get())
+                        for char in cmd:
+                            ser.write(char.encode('ascii'))
+                            time.sleep(0.05)
+                            # print('Sent: '+ char)
+
+                        ser.write('\r\n'.encode('ascii'))
+                    except IndexError:
+                        pass
+                
+            else:
+                ser.Close()
 
         except Exception as error:
             if not self.stop.is_set():
                 print(error)
-                time.sleep(2)
+                time.sleep(0.1)
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()
 
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
-        print (time.time() - self.offset,':',line.decode('utf-8'))
-        self.update_label_text(str(line.decode('utf-8')))
+        print (time.time() - self.offset,':',line.decode(encoding = 'ascii'))
+        self.update_label_text(line.decode(encoding = 'ascii').expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
 
     @mainthread
     def update_label_text(self, new_text):
