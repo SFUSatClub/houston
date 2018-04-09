@@ -37,9 +37,8 @@ from SCHEDTab import *
 
 # serialPort = '/dev/cu.usbserial-A700eYE7'
 serialPort = '/dev/tty.usbserial-TIXRGQDLB'
-serial_TxQ = queue.Queue()
-txQ = deque()
-test = SatTest(txQ)
+serial_TxQ = deque()
+test = SatTest(serial_TxQ)
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -69,8 +68,8 @@ class Top(BoxLayout):
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
         # basically do constructor things here
-        self.sched_tab.initialize(txQ, test)
-        self.uart_tab.populate(txQ)
+        self.sched_tab.initialize(serial_TxQ, test)
+        self.uart_tab.populate(serial_TxQ)
         self.start_second_thread("example arg")
   
     def start_second_thread(self, l_text):
@@ -85,7 +84,6 @@ class Top(BoxLayout):
 
     def do_serial(self):
         try:
-            # with serial.Serial(serialPort, 115200, timeout = 10) as ser:
             ser = serial.Serial(serialPort, 115200, timeout = 10) 
             self.offset = time.time() # time we start things up
 
@@ -96,19 +94,13 @@ class Top(BoxLayout):
                         self.dispatch_telem(line)
                 else:
                     try:
-                        cmd = str(txQ.popleft())
-                        #  serial_TxQ.qsize() > 0:
-                        # print('yuh')
-                        # cmd = str(serial_TxQ.get())
+                        cmd = str(serial_TxQ.popleft())
                         for char in cmd:
                             ser.write(char.encode('ascii'))
                             time.sleep(0.05)
-                            # print('Sent: '+ char)
-
-                        ser.write('\r\n'.encode('ascii'))
+                        ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a 
                     except IndexError:
-                        pass
-                
+                        pass            
             else:
                 ser.Close()
 

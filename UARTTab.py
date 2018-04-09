@@ -20,13 +20,11 @@ class UARTTab(TabbedPanelItem):
 
     def send_button_press(self, *args):
         print('Sending_button:' + self.uart_entry.text)
-        # self.serial_TxQ.put(self.uart_entry.text)
         self.serial_TxQ.append(self.uart_entry.text)
 
     def on_enter(self, *args): # gets text from the input box on enter
         thing = args[0]
         print('Sending_enter:' + thing.text)
-        # self.serial_TxQ.put(thing.text)
         self.serial_TxQ.append(thing.text)
 
 
