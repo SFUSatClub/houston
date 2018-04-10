@@ -44,7 +44,7 @@ class SCHEDTab(TabbedPanelItem):
 
     def rm_button_press(self, cmdid):
         """ remove command from the list by ID"""
-        i = val_match_dict_in_list(self.sched_rv.data, 'cmdid', cmdid)
+        i = index_of_cmdid(self.cmds_list, cmdid)
         del self.sched_rv.data[i]
         del self.cmds_list[i]
 
@@ -53,15 +53,15 @@ class SCHEDTab(TabbedPanelItem):
         """ using the kivy clock, we schedule when to put cmds out on the tx queue
         """
         self.test.zero_epoch() #TODO: we won't always do this - use real sat epoch
-        self.test.add_schedule(self.sched_rv.data[:]) # add all of our commands
+        self.test.add_schedule(self.cmds_list[:]) # add all of our commands
 
         for cmd in self.cmds_list:
             epoch_to_send = cmd.epoch # for relative, just subtract current sat epoch .. that's why we have a var 
             #TODO: determine schedule time from now based on relative flag
             
             print("COMMAND: ", epoch_to_send, cmd.cmdid)
-            Clock.schedule_once(partial(self.test.uplink, cmd.cmdid), epoch_to_send)
-            Clock.schedule_once(partial(self.test.command_timeout, cmd.cmdid), epoch_to_send +cmd.timeout)
+            Clock.schedule_once(partial(self.test.uplink, cmd.cmdid), int(epoch_to_send))
+            Clock.schedule_once(partial(self.test.command_timeout, cmd.cmdid), epoch_to_send + cmd.timeout)
 
     def dismiss_popup(self):
         self._popup.dismiss()

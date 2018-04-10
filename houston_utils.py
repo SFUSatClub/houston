@@ -31,3 +31,15 @@ def val_match_dict_in_list(in_list, key, value):
     return i 
 
 
+def index_from_val(in_list, attribute, value):
+    """ Given a list of objects, returns first one with a specific value for an attribute"""
+    for i, obj in enumerate(in_list):
+        if getattr(obj, attribute) == value:
+            break
+    else: 
+        i = -1
+    return i 
+
+def index_of_cmdid(in_list, cmdid_in):
+    """ Return list index of command with specific id"""
+    return index_from_val(in_list, 'cmdid', cmdid_in)

@@ -17,32 +17,32 @@ class SatTest():
         self.raw_data = [] # raw stuff coming in from the sat
         self.zero_epoch()
     def check_response(self, telem, rx_time):
-        print ("SatTest rx: ", self.sat_epoch_at_utc(rx_time))
+        print ("SatTest rx: ", self.sat_epoch_at_unix(rx_time))
 
     def zero_epoch(self):
-        self.utc_at_0 = time.time()
+        self.unix_at_0 = time.time()
 
     def sat_epoch(self):
-        return time.time() - self.utc_at_0
+        return time.time() - self.unix_at_0
 
-    def sat_epoch_at_utc(self, utc):
-        return utc - self.utc_at_0 
+    def sat_epoch_at_unix(self, unix):
+        return unix - self.unix_at_0 
 
     def add_schedule(self, data_in):
-        # add a list of command dicts
+        # add a list of command objects
         self.new = data_in
 
     def uplink(self, cmdid, dt):
         print("CMDID_in", str(cmdid))
-        i = val_match_dict_in_list(self.new, 'cmdid', cmdid)
+        i = index_of_cmdid(self.new, cmdid)
         command = self.new[i]
         
         # rm from new list, put on pending list
         del self.new[i]
         self.pending.append(command)
-        print("command: ", command, str(i))
-        print("SCHEDULED COMMAND SEND: " + str(command['cmd']))
-        self.tx_queue.append(str(command['cmd']))
+        print("Command: ", command.cmd_dict(), str(i))
+        print("SCHEDULED COMMAND SEND: " + command.cmd)
+        self.tx_queue.append(command.cmd)
         return
 
     def process_telem(self, telem):
@@ -86,12 +86,12 @@ class SatTest():
         - if command is still on pending, it hasn't received a good response, so time it out
         """
 
-        print('Checking timeout of command ID: ', str(cmdid))
-        i = val_match_dict_in_list(self.pending[:], 'cmdid', str(cmdid))
+        print('Checking timeout of command ID: ', cmdid)
+        i = index_of_cmdid(self.pending[:], cmdid)
         if i != -1: # command is in pending and therefore timed out
             self.errored.append(self.pending[i])
             del self.pending[i]
-            print("Command ID ", str(cmdid), "placed in errored.")
+            print("Command ID ", cmdid, " placed in errored.")
         return
         # pass
         # this will be called at the timeout time for a command by kivy clock
