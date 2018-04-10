@@ -6,45 +6,31 @@
 
 class Command():
     def __init__(self, cmdid, cmd, epoch, timeout, expect, rel):
-        self.dict_rep = {'cmdid': str(cmdid), 'cmd': str(cmd), 'epoch': str(epoch), 'timeout': str(timeout), 'expect': str(expect), 'rel': str(rel)}
+        self.cmdid = cmdid 
+        self.cmd = cmd
+        self.epoch = epoch
+        self.timeout = timeout
+        self.expect = expect
+        self.rel = rel
+
         self.clean_command()
-        self.update_internal()
 
     def clean_command(self):
         """ Fixes weird parameters and tells user about it """
 
-        if self.dict_rep['timeout'] == '' or not self.dict_rep['timeout'].isnumeric(): 
-            self.dict_rep['timeout'] = str(3)
+        if str(self.timeout) == '' or not str(self.timeout).isnumeric(): 
             self.timeout = 3
-            print("Added default timeout of 0 to command " + self.dict_rep['cmdid'])
+            print("Added default timeout of 0 to command ", self.cmdid)
 
-        if self.dict_rep['epoch'] == '' or not self.dict_rep['epoch'].isnumeric(): 
-            self.dict_rep['epoch'] = str(0)
+        if str(self.epoch) == '' or not str(self.epoch).isnumeric(): 
             self.epoch = 0
-            print("Added default epoch of 0 to command " + self.dict_rep['cmdid'])
+            print("Added default epoch of 0 to command ", self.cmdid)
         
-        if self.dict_rep['cmd'] == '': 
-            self.dict_rep['cmd'] = 'ack'
+        if str(self.cmd) == '': 
             self.cmd = 'ack'
-            print("Added default command of 'ack' to command " + self.dict_rep['cmdid'])
-
+            print("Added default command of 'ack' to command ", self.cmdid)
 
     def cmd_dict(self):
-        """ returns dictionary representation required for Kivy"""
-        return self.dict_rep
-
-    def cmd_dict_update(self, key, val):
-        """ Allows entries to be edited, and checks them """
-        self.dict_rep[key] = val
-        self.clean_command()
-        self.update_internal()
-        return self.dict_rep
-
-    def update_internal(self): 
-        """ Call after clean_command or else can get errors"""
-        self.id = int(self.dict_rep['cmdid'])
-        self.cmd = self.dict_rep['cmd']
-        self.epoch = int(self.dict_rep['epoch'])
-        self.timeout = int(self.dict_rep['timeout'])
-        self.expect = self.dict_rep['expect']
-        self.rel = self.dict_rep['rel']
+        """ returns dictionary representation required for Kivy, all values as string"""
+        return self.__dict__
+        # return {key: str(val) for key, val in self.__dict__.items()} # this was required when dict items had to be string

@@ -24,7 +24,7 @@ class SCHEDTab(TabbedPanelItem):
         print ("INITIALIZE")
         self.serial_TxQ = serial_TxQ
         self.test = test
-        cmd0 = Command(0, 'state_get', 3, 1, 'SAFE', True) # make a couple default commands
+        cmd0 = Command(0, 'state get', 3, 1, 'SAFE', True) # make a couple default commands
         cmd1 = Command(1, 'get heap', 5, 2, '4192 bytes', True)
         self.cmds_list = [cmd0, cmd1]
         self.sched_rv.data = list(map(lambda cmd:cmd.cmd_dict(),self.cmds_list)) # https://stackoverflow.com/questions/2682012/how-to-call-same-method-for-a-list-of-objects 
@@ -33,7 +33,7 @@ class SCHEDTab(TabbedPanelItem):
     def add_to_sched(self):
         # TODO: bring in the relative time argument from the check box
         cmd = Command(self.cmdid, self.cmd_entry.text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
-        print(self.cmd_entry.text + self.cmd_expected_entry.text + self.cmd_timeout_entry.text)
+        print('Schedule: ', cmd.cmdid, cmd.cmd, cmd.expect)
         self.sched_rv.data.append(cmd.cmd_dict())
         self.cmds_list.append(cmd)
         self.cmdid += 1
@@ -52,17 +52,16 @@ class SCHEDTab(TabbedPanelItem):
     def uplink_schedule(self):
         """ using the kivy clock, we schedule when to put cmds out on the tx queue
         """
-        self.test.zero_epoch()
+        self.test.zero_epoch() #TODO: we won't always do this - use real sat epoch
         self.test.add_schedule(self.sched_rv.data[:]) # add all of our commands
 
-        for command in self.sched_rv.data:
-            epoch_to_send = int(command['epoch']) # for relative, just subtract current sat epoch
-            cmdid = command['cmdid']
+        for cmd in self.cmds_list:
+            epoch_to_send = cmd.epoch # for relative, just subtract current sat epoch .. that's why we have a var 
             #TODO: determine schedule time from now based on relative flag
             
-            print("COMMAND: ", str(epoch_to_send), str(cmdid))
-            Clock.schedule_once(partial(self.test.uplink, cmdid), epoch_to_send)
-            Clock.schedule_once(partial(self.test.command_timeout, cmdid), epoch_to_send + int(command['timeout']))
+            print("COMMAND: ", epoch_to_send, cmd.cmdid)
+            Clock.schedule_once(partial(self.test.uplink, cmd.cmdid), epoch_to_send)
+            Clock.schedule_once(partial(self.test.command_timeout, cmd.cmdid), epoch_to_send +cmd.timeout)
 
     def dismiss_popup(self):
         self._popup.dismiss()

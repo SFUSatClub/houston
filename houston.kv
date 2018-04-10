@@ -272,12 +272,12 @@
             size: self.size
             pos: self.pos
     # these allow us to pop data in from py - these are rv.data dict keys
-    cmdid: ''
+    cmdid: 0
     cmd: ''
-    timeout: ''
+    timeout: 0
     expect: ''
-    epoch: ''
-    rel:''
+    epoch: 0
+    rel: True
     BoxLayout:
         size_hint_x: 1
         orientation: 'horizontal'
@@ -291,7 +291,8 @@
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.2
-            text: root.epoch #str('+'+str(epoch)) if (root.rel == 'True') else str('| '+str(epoch)+ ' |')
+            text: str(root.epoch)
+            #text: root.epoch #str('+'+str(epoch)) if (root.rel == 'True') else str('| '+str(epoch)+ ' |')
             color: 0.0, 0.9, 0.66, 1
         Label:
             size_hint_x: 0.22
