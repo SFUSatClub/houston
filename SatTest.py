@@ -15,12 +15,15 @@ class SatTest():
         self.tx_queue = tx_queue # handle for the serial transmit queue
         self.epoch = time.time
         self.raw_data = [] # raw stuff coming in from the sat
+        self.zero_epoch()
+    def check_response(self, telem, rx_time):
+        print ("SatTest rx: ", self.sat_epoch_at_utc(rx_time))
 
     def zero_epoch(self):
-        self.utc_at_0 = time.time
+        self.utc_at_0 = time.time()
 
     def sat_epoch(self):
-        return time.time - self.utc_at_0
+        return time.time() - self.utc_at_0
 
     def sat_epoch_at_utc(self, utc):
         return utc - self.utc_at_0 

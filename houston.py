@@ -70,9 +70,9 @@ class Top(BoxLayout):
         # basically do constructor things here
         self.sched_tab.initialize(serial_TxQ, test)
         self.uart_tab.populate(serial_TxQ)
-        self.start_second_thread("example arg")
+        self.start_uart_thread("example arg")
   
-    def start_second_thread(self, l_text):
+    def start_uart_thread(self, l_text):
         print('thread started')
         threading.Thread(target=self.second_thread).start()
 
@@ -85,20 +85,20 @@ class Top(BoxLayout):
     def do_serial(self):
         try:
             ser = serial.Serial(serialPort, 115200, timeout = 10) 
-            self.offset = time.time() # time we start things up
+            self.offset = time.time()               # time we start things up
 
             while(ser.isOpen() and not self.stop.is_set()):
-                if ser.inWaiting() > 0:
-                    line = ser.readline()  #read the bytes and convert from binary array to ASCII
-                    if len(line) > 1: # this catches the weird glitch where I only get out one character
+                if ser.inWaiting() > 0:             # we've got characters to deal with
+                    line = ser.readline()  
+                    if len(line) > 1:               # this catches the weird glitch where I only get out one character
                         self.dispatch_telem(line)
-                else:
+                else:                               # otherwise, send stuff out if needed
                     try:
                         cmd = str(serial_TxQ.popleft())
                         for char in cmd:
                             ser.write(char.encode('ascii'))
                             time.sleep(0.05)
-                        ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a 
+                        ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
                     except IndexError:
                         pass            
             else:
@@ -115,10 +115,12 @@ class Top(BoxLayout):
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
         print (time.time() - self.offset,':',line.decode(encoding = 'ascii'))
-        self.update_label_text(line.decode(encoding = 'ascii').expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
-
+        self.update_telem_stream(line.decode(encoding = 'ascii').expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
+        test.check_response(line.decode(encoding = 'ascii'), time.time())
+    
     @mainthread
-    def update_label_text(self, new_text):
+    def update_telem_stream(self, new_text):
+        """ called by UART thread, passes data so it can be placed in the UART recycleview"""
         self.uart_tab.insert_end(new_text)
     pass
 

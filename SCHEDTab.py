@@ -56,7 +56,6 @@ class SCHEDTab(TabbedPanelItem):
         self.test.add_schedule(self.sched_rv.data[:]) # add all of our commands
 
         for command in self.sched_rv.data:
-            # command = self.check_command(command)
             epoch_to_send = int(command['epoch']) # for relative, just subtract current sat epoch
             cmdid = command['cmdid']
             #TODO: determine schedule time from now based on relative flag
