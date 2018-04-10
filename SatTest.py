@@ -5,7 +5,6 @@ from houston_utils import *
 
 # SatTest class
 
-
 class SatTest():
     def __init__(self, tx_queue):
         self.new = [] # commands that have not yet been sent out to the OBC
@@ -16,8 +15,28 @@ class SatTest():
         self.epoch = time.time
         self.raw_data = [] # raw stuff coming in from the sat
         self.zero_epoch()
+    
     def check_response(self, telem, rx_time):
-        print ("SatTest rx: ", self.sat_epoch_at_unix(rx_time))
+        # print ("SatTest rx: ", self.sat_epoch_at_unix(rx_time))
+        # in the pending list, see if any expected responses match the telemetry
+        # if yes, put the one with the lowest epoch + timeout
+
+        # print("Telem to match: ", telem)
+        telem = telem.strip()
+        # print("Pending: ", self.pending[0].expect, telem)
+        matches = [cmd for cmd in self.pending[:] if str(cmd.expect) == telem]  # list of all elements with .n==30
+        # print("MATCH: ", [match.cmdid for match in matches]) 
+        
+        if len(matches) > 0:
+            # sort matches and stuff
+            for match in matches:
+                print('Command #', match.cmdid, match.cmd, 'acknowledged at :', self.sat_epoch_at_unix(rx_time))
+                i = index_of_cmdid(self.pending, match.cmdid)
+                self.acknowledged.append(match)
+                del self.pending[i]
+
+            
+        # time.sleep(0.3)
 
     def zero_epoch(self):
         self.unix_at_0 = time.time()
