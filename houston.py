@@ -70,6 +70,8 @@ class Top(BoxLayout):
         # basically do constructor things here
         self.sched_tab.initialize(serial_TxQ, test)
         self.uart_tab.populate(serial_TxQ)
+        self.resp_tab.initialize()
+        test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
         self.start_uart_thread("example arg")
   
     def start_uart_thread(self, l_text):
@@ -107,7 +109,7 @@ class Top(BoxLayout):
         except Exception as error:
             if not self.stop.is_set():
                 print(error)
-                time.sleep(0.1)
+                time.sleep(5)
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()

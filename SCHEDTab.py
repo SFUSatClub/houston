@@ -26,8 +26,8 @@ class SCHEDTab(TabbedPanelItem):
         self.test = test
         cmd0 = Command(0, 'ack', 0, 3, 'Ack!', True) # make a couple default commands
         # cmd0 = Command(0, 'state get', 3, 1, 'SAFE', True) # make a couple default commands
-        # cmd1 = Command(1, 'get heap', 5, 2, '4192 bytes', True)
-        self.cmds_list = [cmd0]
+        cmd1 = Command(1, 'ack', 5, 5, 'Ack!', True)
+        self.cmds_list = [cmd0, cmd1]
         self.sched_rv.data = list(map(lambda cmd:cmd.cmd_dict(),self.cmds_list)) # https://stackoverflow.com/questions/2682012/how-to-call-same-method-for-a-list-of-objects 
         self.cmdid = 2 # unique command ID
         
@@ -40,7 +40,7 @@ class SCHEDTab(TabbedPanelItem):
         self.cmdid += 1
 
     def clear_sched(self):
-        self.sched_rv.data = []
+        del self.sched_rv.data[:]
         self.cmdid = 0;
 
     def rm_button_press(self, cmdid):

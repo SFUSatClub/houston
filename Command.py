@@ -4,6 +4,7 @@
 - we also do validation of the inputs automatically
 """
 
+
 class Command():
     def __init__(self, cmdid, cmd, epoch, timeout, expect, rel):
         self.cmdid = cmdid 
@@ -12,6 +13,7 @@ class Command():
         self.timeout = timeout
         self.expect = expect
         self.rel = rel
+        self.state = 'new'
 
         self.clean_command()
 
@@ -29,6 +31,10 @@ class Command():
         if str(self.cmd) == '': 
             self.cmd = 'ack'
             print("Added default command of 'ack' to command ", self.cmdid)
+
+        if str(self.cmd) == 'ack' and str(self.expect) == '':
+            self.expect = 'Ack!'
+            print("Added default expected 'Ack!' for ack command", self.cmdid)
 
         # now that the vals are good, make sure they're correct type ugh
         self.timeout = int(self.timeout)

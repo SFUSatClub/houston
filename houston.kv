@@ -2,6 +2,7 @@
 <Top>:
     uart_tab: uart_tab
     sched_tab: sched_tab
+    resp_tab: resp_tab
     orientation: 'vertical'
 
     AnchorLayout:
@@ -27,7 +28,7 @@
                 id: uart_tab
             SCHEDTab:
                 id: sched_tab
-            RespTab:
+            RESPTab:
                 id: resp_tab
             
 
@@ -206,7 +207,7 @@
                     on_release: root.uplink_schedule()
     
 
-<RespTab>: # tab for responses
+<RESPTab>: # tab for responses
     text: 'Response'
     resp_rv: resp_rv
     BoxLayout:
@@ -312,21 +313,23 @@
 <Resprow@BoxLayout>: 
     canvas.before:
         Color:
-            rgba: 0.14, 0.14, 0.14, 1
+            rgba: 1, 0.14, 0.14, 1
         Rectangle:
             size: self.size
             pos: self.pos
     # these allow us to pop data in from py - these are rv.data dict keys
-    cmdid: ''
+    cmdid: 0
     cmd: ''
+    timeout: 0
     expect: ''
-    status: ''
+    epoch: 0
+    rel: True
     BoxLayout:
         size_hint_x: 1
         orientation: 'horizontal'
         Label:
             size_hint_x: 0.15
-            text: root.cmdid
+            text: str(root.cmdid)
             color: 0.3, 0.3, 0.3, 1
         Label:
             size_hint_x: 0.22
@@ -336,10 +339,7 @@
             size_hint_x: 0.22
             text: root.expect
             color: 0.0, 0.9, 0.66, 1
-        Label:
-            size_hint_x: 0.22
-            text: root.status
-            color: 0.0, 0.9, 0.66, 1
+
 
 
 # Stuff from elsewhere

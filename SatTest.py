@@ -4,6 +4,20 @@ import queue
 from houston_utils import *
 
 # SatTest class
+# this manages all of the data and keeps it available/synced in all view classes (Kivy tabs)
+
+""" Other classes in the application can be notified of changes within this class,
+    such as when we process a piece of telemetry and validate a command - which moves it
+    from pending to acknowledged. 
+
+    To notify other classes:
+        - after creating an instance of the dependnat class, call sattest.attach_dependant(<object>)
+        - your dependant class must implement update_from_sattest()
+        - when data changes within sattest, sattest will call update_from_sattest() for all dependants
+        - it will pass a reference to itself in through update_from_sattest()
+        - your dependant classses can now poke at sattest attributes and use them
+        - see RESPTab.py for an example
+""" 
 
 class SatTest():
     def __init__(self, tx_queue):
@@ -15,7 +29,8 @@ class SatTest():
         self.epoch = time.time
         self.raw_data = [] # raw stuff coming in from the sat
         self.zero_epoch()
-    
+        self.dependants = [] # objects that will be notified of changes to sattest lists
+
     def check_response(self, telem, rx_time):
         # print ("SatTest rx: ", self.sat_epoch_at_unix(rx_time))
         # in the pending list, see if any expected responses match the telemetry
@@ -31,12 +46,21 @@ class SatTest():
             # sort matches and stuff
             for match in matches:
                 print('Command #', match.cmdid, match.cmd, 'acknowledged at :', self.sat_epoch_at_unix(rx_time))
-                i = index_of_cmdid(self.pending, match.cmdid)
-                self.acknowledged.append(match)
-                del self.pending[i]
+                #refactor
+                self.add_to_acknowledged(match.cmdid)
 
-            
-        # time.sleep(0.3)
+            self.update_dependants('command_ack')        
+     # when this runs, need to notify resptab to update
+
+    def attach_dependant(self, dependant):
+         # once we create the test, there are things that depend on its data, such as the response tab
+         # dependants will all have a update_from_sattest method
+         self.dependants.append(dependant)
+
+    def update_dependants(self, method):
+        """ Calls update_from_sattest method of all dependant objects so that they can update their data"""
+        for dep in self.dependants:
+            dep.update_from_sattest(self, method)
 
     def zero_epoch(self):
         self.unix_at_0 = time.time()
@@ -49,19 +73,19 @@ class SatTest():
 
     def add_schedule(self, data_in):
         # add a list of command objects
-        self.new = data_in
+        print('Added ', len(data_in), 'commands to test schedule')
+        self.add_to_new(data_in)
+        self.update_dependants('add_schedule')
 
     def uplink(self, cmdid, dt):
-        print("CMDID_in", str(cmdid))
-        i = index_of_cmdid(self.new, cmdid)
-        command = self.new[i]
-        
-        # rm from new list, put on pending list
-        del self.new[i]
-        self.pending.append(command)
-        print("Command: ", command.cmd_dict(), str(i))
+        # print("CMDID_in", str(cmdid))
+        self.add_to_pending(cmdid)
+        command = self.pending[index_of_cmdid(self.pending, cmdid)]
+        # print("Command: ", command.cmd_dict(), str(i))
         print("SCHEDULED COMMAND SEND: " + command.cmd)
         self.tx_queue.append(command.cmd)
+        self.update_dependants('uplink')
+
         return
 
     def process_telem(self, telem):
@@ -108,12 +132,42 @@ class SatTest():
         print('Checking timeout of command ID: ', cmdid)
         i = index_of_cmdid(self.pending[:], cmdid)
         if i != -1: # command is in pending and therefore timed out
-            self.errored.append(self.pending[i])
-            del self.pending[i]
+            self.add_to_errored(i)
+            self.update_dependants('errored')
             print("Command ID ", cmdid, " placed in errored.")
+
         return
         # pass
         # this will be called at the timeout time for a command by kivy clock
         # search the pending list for the command ID
         #   - if not there, no worries we've processed the command before timeout
         #   - if there, pull off and add to failed command list
+
+    def add_to_new(self, data_in):
+        """ add to new command list, update the state field """
+        for command in data_in: command.state = 'new'
+        self.new = data_in
+        
+
+    def add_to_pending(self, cmdid):
+        """ add to pending, remove from new, update state field """
+        i = index_of_cmdid(self.new, cmdid)
+        command = self.new[i]
+        command.state = 'pending'
+        del self.new[i]
+        self.pending.append(command)
+
+    def add_to_acknowledged(self, cmdid):
+        """ remove from pending, add to acknowledged, update state field """
+        i = index_of_cmdid(self.pending, cmdid)
+        command = self.pending[i]
+        command.state = 'ack'
+        self.acknowledged.append(command)
+        del self.pending[i]
+
+    def add_to_errored(self, i):
+        """ remove from pending, add to errored, update state field """
+        cmd = self.pending[i]
+        cmd.state = 'errored'
+        self.errored.append(cmd)
+        del self.pending[i]
