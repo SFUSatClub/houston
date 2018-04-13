@@ -72,6 +72,7 @@ class Top(BoxLayout):
         self.uart_tab.populate(serial_TxQ)
         self.resp_tab.initialize()
         test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
+        #stdtelem: attach the uart_tab here
         self.start_uart_thread("example arg")
   
     def start_uart_thread(self, l_text):
@@ -99,7 +100,7 @@ class Top(BoxLayout):
                         cmd = str(serial_TxQ.popleft())
                         for char in cmd:
                             ser.write(char.encode('ascii'))
-                            time.sleep(0.05)
+                            # time.sleep(0.05)
                         ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
                     except IndexError:
                         pass            
@@ -119,7 +120,8 @@ class Top(BoxLayout):
         print (time.time() - self.offset,':',line.decode(encoding = 'ascii'))
         self.update_telem_stream(line.decode(encoding = 'ascii').expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
         test.check_response(line.decode(encoding = 'ascii'), time.time())
-    
+        #TODO: add the telem to a log
+
     @mainthread
     def update_telem_stream(self, new_text):
         """ called by UART thread, passes data so it can be placed in the UART recycleview"""

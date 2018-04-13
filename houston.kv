@@ -238,14 +238,14 @@
             bar_width: dp(10)
             viewclass: 'Resprow'
             size_hint_y: 0.8
-            RecycleGridLayout:
+            RecycleBoxLayout:
                 default_size: None, dp(30)
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
                 orientation: 'vertical'
                 spacing: dp(2)
-                cols: 1
+                # cols: 1 # required if this is recycleGridLayout
 
 <UARTRow@BoxLayout>: # row class for the UART telemetry
     canvas.before:
@@ -311,34 +311,42 @@
             color: 0.14, 0.14, 0.14, 1
        
 <Resprow@BoxLayout>: 
-    canvas.before:
-        Color:
-            rgba: 1, 0.14, 0.14, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
-    # these allow us to pop data in from py - these are rv.data dict keys
+ # these allow us to pop data in from py - these are rv.data dict keys
     cmdid: 0
     cmd: ''
     timeout: 0
     expect: ''
     epoch: 0
     rel: True
+    state: ''
+    colours: {'pending':(0,0,1,0.5), 'ack':(0,1,0,0.5),'':(0,0,0,0.5), 'new':(1,1,0.5,0.5), 'errored':(1,0.1,0.1,0.5)}
+  
+    canvas.before:
+        Color:
+            rgba: self.colours[self.state] #self.r,1, 1, 1 #self.colours[self.state]
+        Rectangle:
+            size: self.size
+            pos: self.pos
+   
     BoxLayout:
         size_hint_x: 1
         orientation: 'horizontal'
         Label:
-            size_hint_x: 0.15
+            size_hint_x: 0.1
             text: str(root.cmdid)
-            color: 0.3, 0.3, 0.3, 1
+            color: 1,1,1,1
         Label:
-            size_hint_x: 0.22
+            size_hint_x: 0.3
             text: root.cmd
-            color: 0.0, 0.9, 0.66, 1
+            color: 1,1,1,1
         Label:
-            size_hint_x: 0.22
+            size_hint_x: 0.3
             text: root.expect
-            color: 0.0, 0.9, 0.66, 1
+            color: 1,1,1,1
+        Label:
+            size_hint_x: 0.3
+            text: root.state
+            color: 1,1,1,1
 
 
 

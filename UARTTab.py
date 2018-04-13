@@ -39,3 +39,7 @@ class UARTTab(TabbedPanelItem):
         if self.rv.data:
             self.rv.data[0]['value'] = value 
             self.rv.refresh_from_data()
+
+    #stdtelem: implement the update_from_sattest method as is done in RESPtab
+    # in this case, look for stdtelem flag from the method, and update the graphics based on the data
+

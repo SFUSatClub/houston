@@ -30,6 +30,7 @@ class SatTest():
         self.raw_data = [] # raw stuff coming in from the sat
         self.zero_epoch()
         self.dependants = [] # objects that will be notified of changes to sattest lists
+        # stdtelem: self.stdtelem = [] - list of standard telemetry entries
 
     def check_response(self, telem, rx_time):
         # print ("SatTest rx: ", self.sat_epoch_at_unix(rx_time))
@@ -51,6 +52,8 @@ class SatTest():
 
             self.update_dependants('command_ack')        
      # when this runs, need to notify resptab to update
+        #stdtelem: check if it's standard telemetry, if so, put in stdtelem list and update_dependants('stdtelem')
+
 
     def attach_dependant(self, dependant):
          # once we create the test, there are things that depend on its data, such as the response tab
