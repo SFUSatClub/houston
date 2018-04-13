@@ -35,8 +35,11 @@ from UARTTab import *
 from RESPTab import *
 from SCHEDTab import *
 
+#Joseph: imports for settings panel go here
+
 # serialPort = '/dev/cu.usbserial-A700eYE7'
 serialPort = '/dev/tty.usbserial-TIXRGQDLB'
+serialPort = 'COM7'
 serial_TxQ = deque()
 test = SatTest(serial_TxQ)
 
@@ -141,7 +144,11 @@ class HoustonApp(App): # the top level app class
 
     def build(self):
         # must immediately return Top() here, cannot do something like self.top = Top, and call other functions
+        
+        #Joseph: self.settings thing goes here
         return Top()
+
+        #Joseph: build config and build settings things go here
 
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
         self.root.sched_tab.rm_button_press(cmdid)
