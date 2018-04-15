@@ -39,7 +39,7 @@ from SCHEDTab import *
 
 # serialPort = '/dev/cu.usbserial-A700eYE7'
 serialPort = '/dev/tty.usbserial-TIXRGQDLB'
-serialPort = 'COM7'
+# serialPort = 'COM7'
 serial_TxQ = deque()
 test = SatTest(serial_TxQ)
 
