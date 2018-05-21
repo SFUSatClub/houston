@@ -29,6 +29,7 @@ from kivy.uix.image import Image
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.lang import Builder
 from kivy.properties import NumericProperty
+from kivy.uix.settings import SettingsWithSidebar
 
 from houston_utils import *
 import serial
@@ -37,16 +38,10 @@ from SatTest import *
 from UARTTab import *
 from RESPTab import *
 from SCHEDTab import *
-
 from FileParse import *
+from settings_json import settings_json, board_names
 
-#Joseph: imports for settings panel go here
-# serialPort = '/dev/tty.usbserial-TIXRGQDLB'
-# serialPort = '/dev/cu.usbserial-A700eYE7'
-serialPort = '/dev/cu.usbserial-DN02I8UQ'
-# serialPort = '/dev/tty.usbserial-A50285BI'
-# serialPort = '/dev/tty.usbserial-TIXRGQDLB'
-# serialPort = 'COM7'
+
 serial_TxQ = deque()
 test = SatTest(serial_TxQ)
 file_parser = FileParse()
@@ -61,11 +56,6 @@ file_parser = FileParse()
 #           https://github.com/kivy/kivy/wiki/Snippets
 
 
-# class Cmdrow(BoxLayout):
-#     epoch = NumericProperty(None)
-#     def __init__(self, **kwargs):
-#         super(Cmdrow, self).__init__(**kwargs)
-
 class Top(BoxLayout):
     uart_tab = ObjectProperty(None)
     sched_tab = ObjectProperty(None)
@@ -74,8 +64,8 @@ class Top(BoxLayout):
 
     def __init__(self, **kwargs):
         super(Top, self).__init__(**kwargs)
+        self.check_which_port()
         self.setup_tabs()
-        
     
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
@@ -85,24 +75,33 @@ class Top(BoxLayout):
         self.resp_tab.initialize()
         test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
         #stdtelem: attach the uart_tab here
-        self.start_uart_thread("example arg")
+        self.start_uart_thread()
   
-    def start_uart_thread(self, l_text):
-        print('thread started')
+    def check_which_port(self):
+        """ Sets up the UART port based on the settings panel """
+        if App.get_running_app().config.get('houston_settings', 'uart_options') == 'Use Manual Entry':
+            self.serialPort = App.get_running_app().config.get('houston_settings', 'uart_string')
+        else:
+            self.serialPort = board_names[App.get_running_app().config.get('houston_settings', 'uart_options')]
+
+    def start_uart_thread(self):
+        print('UART thread started')
         threading.Thread(target=self.second_thread).start()
 
     def second_thread(self):
-        while not self.stop.is_set():
+        self.reset_serial_flag = False  # if true, will close out the serial 
+        self.uart_thread_kill = False   # allows this thread to return (and stop running)
+        while not self.stop.is_set() and not self.uart_thread_kill:
             self.do_serial()
         else:
             return
 
     def do_serial(self):
         try:
-            ser = serial.Serial(serialPort, 115200, timeout = 10) 
+            ser = serial.Serial(self.serialPort, 115200, timeout = 10) 
             self.offset = time.time()               # time we start things up
 
-            while(ser.isOpen() and not self.stop.is_set()):
+            while(ser.isOpen() and not self.stop.is_set()) and not self.reset_serial_flag:
                 if ser.inWaiting() > 0:             # we've got characters to deal with
                     line = ser.readline()  
                     if len(line) > 1:               # this catches the weird glitch where I only get out one character
@@ -117,7 +116,9 @@ class Top(BoxLayout):
                     except IndexError:
                         pass            
             else:
-                ser.Close()
+                ser.close()
+                self.uart_thread_kill = True
+                return
 
         except Exception as error:
             if not self.stop.is_set():
@@ -126,7 +127,19 @@ class Top(BoxLayout):
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()
+    
+    def reset_serial(self, serialPort):
+        """ Resets the serial stream when the port is changed in settings """
+        self.serialPort = serialPort
+        numthreads = len(threading.enumerate())
+        self.reset_serial_flag = True
+        while numthreads == len(threading.enumerate()):    # a bit of a hack, wait around until we're sure the UART thread is closed 
+            time.sleep(0.5)
+        print(threading.enumerate())
+        self.start_uart_thread()    # start the thread back up again
 
+
+        
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
         line = line.decode(encoding = 'ascii')
@@ -155,13 +168,33 @@ class HoustonApp(App): # the top level app class
         print("Stopping.")
 
     def build(self):
-        # must immediately return Top() here, cannot do something like self.top = Top, and call other functions
-        
-        #Joseph: self.settings thing goes here
+        # must immediately return Top() here, cannot do something like self.top = Top, and call other functions      
         return Top()
+    
+    def build_config(self, config):
+        config.setdefaults('houston_settings',{
+            'uart_options': 'Please select an option',
+            'uart_string': ''
+        })
 
-        #Joseph: build config and build settings things go here
+    def build_settings(self, settings):
+        """ Load the settings panel layout from settings_json"""
+        settings.add_json_panel('Houston Settings', self.config, data = settings_json)
 
+    def on_config_change(self, config, section, key, value):
+        """ Called when a setting is changed """
+        print(section, config, key, value)
+        serialPort = self.root.serialPort
+        if key == 'uart_options':
+            if board_names[value] is not 'use_man':
+                serialPort = board_names[value]
+        elif key == 'uart_string':
+            serialPort = value
+        print('Serial port change: ', serialPort)
+
+        if serialPort != self.root.serialPort:
+            self.root.reset_serial(serialPort)
+    
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
         self.root.sched_tab.rm_button_press(cmdid)
 

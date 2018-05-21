@@ -15,6 +15,19 @@
             source: 'logo.png'
             size_hint: None, None
             size: 300, 68
+    AnchorLayout:
+        anchor_x: 'right'
+        anchor_y: 'top'
+        size_hint: 1, 0.01
+        Button:
+            text:'settings'
+            font_size: 30
+            on_release: app.open_settings()
+            size_hint: None, None
+            size: 200, 68
+            color: 0.3, 0.3, 0.3, 1
+            background_color: 0,0,0,1
+
 
     BoxLayout: #space below the logo tab
         orientation: 'horizontal'
