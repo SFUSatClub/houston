@@ -19,9 +19,13 @@ It is a serial monitor, command schedule creator, command uploader, and telemetr
 
 4. exit nano with `ctrl + x`, `y` to save the file
 5. cd houston
-6. `mkvirtualenv sfusat-gcs` (you can name it whatever you want)
-7. You should now be in the virtualenv, indicated by `(sfusat-gcs)` before your command prompt
-7. `pip3 install -r reqs.txt`
+6. run `which python` and make sure it returns `/usr/local/bin/python`
+- If not, run `brew install python` or equivalent install. (Ensure install of Python version 3 `python -V`)
+7. ``mkvirtualenv --python=`which python3` sfusat-gcs`` (you can name it whatever you want)
+8. You should now be in the virtualenv, indicated by `(sfusat-gcs)` before your command prompt
+9. `sudo pip install https://github.com/kivy/kivy/archive/master.zip`
+10. `sudo pip install serial`
+11. `pip3 install -r requirements.txt`
 
 ## Installation Notes:
 
