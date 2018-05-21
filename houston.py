@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 SFUSat Houston
 ============
@@ -35,13 +36,18 @@ from UARTTab import *
 from RESPTab import *
 from SCHEDTab import *
 
-#Joseph: imports for settings panel go here
+from FileParse import *
 
+#Joseph: imports for settings panel go here
+# serialPort = '/dev/tty.usbserial-TIXRGQDLB'
 # serialPort = '/dev/cu.usbserial-A700eYE7'
-serialPort = '/dev/tty.usbserial-TIXRGQDLB'
+serialPort = '/dev/cu.usbserial-DN02I8UQ'
+# serialPort = '/dev/tty.usbserial-A50285BI'
+# serialPort = '/dev/tty.usbserial-TIXRGQDLB'
 # serialPort = 'COM7'
 serial_TxQ = deque()
 test = SatTest(serial_TxQ)
+file_parser = FileParse()
 
 # Notes:
 #   - can either call root. or app. methods from kv file.
@@ -67,6 +73,7 @@ class Top(BoxLayout):
     def __init__(self, **kwargs):
         super(Top, self).__init__(**kwargs)
         self.setup_tabs()
+        
     
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
@@ -103,7 +110,7 @@ class Top(BoxLayout):
                         cmd = str(serial_TxQ.popleft())
                         for char in cmd:
                             ser.write(char.encode('ascii'))
-                            # time.sleep(0.05)
+                            time.sleep(0.05)
                         ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
                     except IndexError:
                         pass            
@@ -113,16 +120,19 @@ class Top(BoxLayout):
         except Exception as error:
             if not self.stop.is_set():
                 print(error)
-                time.sleep(5)
+                time.sleep(1)
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.do_serial()
 
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
-        print (time.time() - self.offset,':',line.decode(encoding = 'ascii'))
-        self.update_telem_stream(line.decode(encoding = 'ascii').expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
-        test.check_response(line.decode(encoding = 'ascii'), time.time())
+        line = line.decode(encoding = 'ascii')
+        print (time.time() - self.offset,':',line)
+        self.update_telem_stream(line.expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
+        test.check_response(line, time.time())
+        file_parser.process_raw(line)
+
         #TODO: add the telem to a log
 
     @mainthread
