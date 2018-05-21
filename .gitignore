@@ -7,3 +7,9 @@
 
 
 *.pyc
+
+sat_download_files/*
+
+\.vscode/\.ropeproject/config\.py
+
+\.vscode/\.ropeproject/objectdb

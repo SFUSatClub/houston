@@ -22,7 +22,6 @@ pyserial==3.4
 PyYAML==3.12
 requests==2.18.4
 rope==0.10.7
-serial==0.0.54
 six==1.11.0
 smmap2==2.0.3
 urllib3==1.22

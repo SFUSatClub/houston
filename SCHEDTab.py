@@ -9,6 +9,7 @@ import pickle
 from SatTest import *
 from functools import partial
 from Command import *
+from FileParse import create_dump_command
 
 class SCHEDTab(TabbedPanelItem):
     sched_rv = ObjectProperty(None)
@@ -36,6 +37,7 @@ class SCHEDTab(TabbedPanelItem):
         # TODO: bring in the relative time argument from the check box
         cmd = Command(self.cmdid, self.cmd_entry.text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
         print('Schedule: ', cmd.cmdid, cmd.cmd, cmd.expect)
+        cmd = self.parse_command(cmd) # format certain commands
         self.sched_rv.data.append(cmd.cmd_dict())
         self.cmds_list.append(cmd)
         self.cmdid += 1
@@ -72,6 +74,16 @@ class SCHEDTab(TabbedPanelItem):
             print("COMMAND: ", epoch_to_send, cmd.cmdid)
             Clock.schedule_once(partial(self.test.uplink, cmd.cmdid), int(epoch_to_send))
             Clock.schedule_once(partial(self.test.command_timeout, cmd.cmdid), epoch_to_send + cmd.timeout)
+
+
+    def parse_command(self, command):
+        """ Certain commands require parsing/modification, such as file dump commands.
+                - for dump commands, file names are to be sent as hex, so we figure that out here """
+        
+        if string_find(command.cmd, 'file dump') or string_find(command.cmd, 'file cdump'):
+            command.cmd = create_dump_command(command.cmd)
+
+        return command
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -111,7 +123,6 @@ class SCHEDTab(TabbedPanelItem):
             pickle_File = filename
         with open(os.path.join(path, pickle_File), "wb") as handle:
             pickle.dump(self.cmds_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
         self.dismiss_popup()
 
 

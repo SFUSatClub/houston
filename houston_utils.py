@@ -41,3 +41,11 @@ def index_from_val(in_list, attribute, value):
 def index_of_cmdid(in_list, cmdid_in):
     """ Return list index of command with specific id"""
     return index_from_val(in_list, 'cmdid', cmdid_in)
+
+
+def string_find(in_string, pattern, beg=0):
+    if in_string.find(pattern, beg) != -1:
+        return True
+    else:
+        return False
+
