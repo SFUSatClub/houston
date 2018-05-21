@@ -16,6 +16,8 @@ import random
 from functools import partial
 from collections import deque
 
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # Stop red dots from appearing on right click
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
