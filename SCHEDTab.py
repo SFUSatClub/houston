@@ -89,7 +89,8 @@ class SCHEDTab(TabbedPanelItem):
         self._popup.open()
 
     def load(self, path, filename):
-        with open(os.path.join(path, filename[0]), "rb") as handle:
+        filename[0] = filename[0].replace('/schedules','',1)  # tends to include the schedules directory twice for some reason
+        with open(filename[0], "rb") as handle:
             self.cmds_list_load = pickle.load(handle)
 
         maxIDNum = self.cmds_list.__len__() - 1     # zero indexed
