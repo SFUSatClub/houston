@@ -5,6 +5,7 @@ from kivy.app import ObjectProperty
 from houston_utils import *
 import serial
 import queue
+import pickle
 from SatTest import *
 from functools import partial
 from Command import *
@@ -15,7 +16,7 @@ class SCHEDTab(TabbedPanelItem):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
-    
+
     def __init__(self, **kwargs):
         super(SCHEDTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
@@ -29,9 +30,9 @@ class SCHEDTab(TabbedPanelItem):
         # cmd0 = Command(0, 'state get', 3, 1, 'SAFE', True) # make a couple default commands
         cmd1 = Command(1, 'ack', 5, 5, 'Ack!', True)
         self.cmds_list = [cmd0, cmd1]
-        self.sched_rv.data = list(map(lambda cmd:cmd.cmd_dict(),self.cmds_list)) # https://stackoverflow.com/questions/2682012/how-to-call-same-method-for-a-list-of-objects 
+        self.sched_rv.data = list(map(lambda cmd:cmd.cmd_dict(),self.cmds_list)) # https://stackoverflow.com/questions/2682012/how-to-call-same-method-for-a-list-of-objects
         self.cmdid = 2 # unique command ID
-        
+
     def add_to_sched(self):
         # TODO: bring in the relative time argument from the check box
         cmd = Command(self.cmdid, self.cmd_entry.text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
@@ -43,14 +44,22 @@ class SCHEDTab(TabbedPanelItem):
 
     def clear_sched(self):
         del self.sched_rv.data[:]
-        self.cmdid = 0;
+        self.cmdid = 0
 
     def rm_button_press(self, cmdid):
         """ remove command from the list by ID"""
         i = index_of_cmdid(self.cmds_list, cmdid)
         del self.sched_rv.data[i]
         del self.cmds_list[i]
+        self.clear_sched()
 
+        startingID = 0                    # zero indexed
+        idCounter = startingID
+
+        for cmds in self.cmds_list:     # repopulate schedule tab w/ updated cmds_list and their new id
+            cmds.cmdid = idCounter        # keep id count consistent
+            self.sched_rv.data.append(cmds.cmd_dict())
+            idCounter = idCounter + 1
 
     def uplink_schedule(self):
         """ using the kivy clock, we schedule when to put cmds out on the tx queue
@@ -59,9 +68,9 @@ class SCHEDTab(TabbedPanelItem):
         self.test.add_schedule(self.cmds_list[:]) # add all of our commands
 
         for cmd in self.cmds_list:
-            epoch_to_send = cmd.epoch # for relative, just subtract current sat epoch .. that's why we have a var 
+            epoch_to_send = cmd.epoch # for relative, just subtract current sat epoch .. that's why we have a var
             #TODO: determine schedule time from now based on relative flag
-            
+
             print("COMMAND: ", epoch_to_send, cmd.cmdid)
             Clock.schedule_once(partial(self.test.uplink, cmd.cmdid), int(epoch_to_send))
             Clock.schedule_once(partial(self.test.command_timeout, cmd.cmdid), epoch_to_send + cmd.timeout)
@@ -92,15 +101,28 @@ class SCHEDTab(TabbedPanelItem):
         self._popup.open()
 
     def load(self, path, filename):
-        with open(os.path.join(path, filename[0])) as stream:
-            self.thingy = stream.read()     # load the pickle here
+        filename[0] = filename[0].replace('/schedules','',1)  # tends to include the schedules directory twice for some reason
+        with open(filename[0], "rb") as handle:
+            self.cmds_list_load = pickle.load(handle)
+
+        maxIDNum = self.cmds_list.__len__() - 1     # zero indexed
+
+        for cmds in self.cmds_list_load:
+            cmds.cmdid = maxIDNum + 1        # keep id count consistent
+            idnum = cmds.cmdid
+            self.sched_rv.data.append(cmds.cmd_dict())
+            self.cmds_list.append(cmds)
+            maxIDNum = maxIDNum + 1         # another command added so ID increment by 1
 
         self.dismiss_popup()
 
     def save(self, path, filename):
-        with open(os.path.join(path, filename), 'wb') as stream:    # note: changed to 'wb' because this worked this morning on another project
-            stream.write('foo')             # some other error, wants string to be encoded before write to file
-
+        if '.pkl' not in filename:
+            pickle_File = '{}.pkl'.format(filename) # place pickle file extension on to user input
+        else:
+            pickle_File = filename
+        with open(os.path.join(path, pickle_File), "wb") as handle:
+            pickle.dump(self.cmds_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.dismiss_popup()
 
 
