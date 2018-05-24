@@ -41,7 +41,7 @@ from SCHEDTab import *
 from FileParse import *
 from DASHTab import *
 from settings_json import settings_json, board_names
-
+from simulator import simulator
 
 serial_TxQ = deque()
 test = SatTest(serial_TxQ)
@@ -76,6 +76,7 @@ class Top(BoxLayout):
         self.uart_tab.populate(serial_TxQ)
         self.resp_tab.initialize()
         self.dash_tab.initialize()
+
         test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
         test.attach_dependant(self.dash_tab)
         #stdtelem: attach the uart_tab here
@@ -96,16 +97,36 @@ class Top(BoxLayout):
         self.reset_serial_flag = False  # if true, will close out the serial 
         self.uart_thread_kill = False   # allows this thread to return (and stop running)
         while not self.stop.is_set() and not self.uart_thread_kill:
-            self.do_serial()
+            if self.serialPort is not 'simulator':
+                self.do_serial()
+            else:
+                self.sim = simulator()
+                self.execute_simulator()
         else:
             return
+
+    def execute_simulator(self):
+        self.offset = time.time()               # time we start things up
+
+        while not self.stop.is_set() and not self.reset_serial_flag:
+            # if Houston has something to send, send it
+            try:
+                cmd = str(serial_TxQ.popleft())
+                self.sim.sim_rx(cmd)    # send to simulator
+            except IndexError:
+                pass 
+
+            # call the simulator, will send out telemetry if it has any
+            line = self.sim.sim_tx()
+            if line is not None:
+                self.dispatch_telem(line)
 
     def do_serial(self):
         try:
             ser = serial.Serial(self.serialPort, 115200, timeout = 10) 
             self.offset = time.time()               # time we start things up
 
-            while(ser.isOpen() and not self.stop.is_set()) and not self.reset_serial_flag:
+            while ser.isOpen() and not self.stop.is_set() and not self.reset_serial_flag:
                 if ser.inWaiting() > 0:             # we've got characters to deal with
                     line = ser.readline()  
                     if len(line) > 1:               # this catches the weird glitch where I only get out one character
@@ -135,10 +156,12 @@ class Top(BoxLayout):
     def reset_serial(self, serialPort):
         """ Resets the serial stream when the port is changed in settings """
         self.serialPort = serialPort
-        numthreads = len(threading.enumerate())
+        # numthreads = len(threading.enumerate())
         self.reset_serial_flag = True
-        while numthreads == len(threading.enumerate()):    # a bit of a hack, wait around until we're sure the UART thread is closed 
-            time.sleep(0.5)
+        # Clock.schedule_once(lambda dt: self.start_uart_thread() , 2)
+        time.sleep(2)   # pause while waiting on thread cleanup - TODO: make this less bad
+        # while numthreads == len(threading.enumerate()) and numthreads > 1:    # a bit of a hack, wait around until we're sure the UART thread is closed 
+        #     print("waiting")
         print(threading.enumerate())
         self.start_uart_thread()    # start the thread back up again
 
@@ -146,7 +169,10 @@ class Top(BoxLayout):
         
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
-        line = line.decode(encoding = 'ascii')
+        try:
+            line = line.decode(encoding = 'ascii')
+        except: 
+            pass
         print (time.time() - self.offset,':',line)
         self.update_telem_stream(line.expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
         test.check_response(line, time.time())
