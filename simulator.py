@@ -39,8 +39,9 @@ class simulator():
             return None
 
     def send_std_telem(self):
+        """ This function periodically sends out a fake standard telemetry packet """
         pass
 
-        # Todo: send out a set of standard telemetry once every few seconds
-        # the telemetry can look like: '<time since construction in seconds>, <random letter a-d>, <random number 0-2>, <random number 0-100>' 
+        # TODO: send out a set of standard telemetry once every few seconds, probably using the time module
+        # the telemetry can look like: '<time since construction in seconds>, <random letter a-d>, <random number 0-2>, <random number 0-100>', so it's a string of a bunch of numbers and some letters
         # if it's been a few seconds since the last time we sent, call self.sim_transmit(the_fake_data). Otheriwse, do nothing
