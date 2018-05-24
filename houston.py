@@ -39,6 +39,7 @@ from UARTTab import *
 from RESPTab import *
 from SCHEDTab import *
 from FileParse import *
+from DASHTab import *
 from settings_json import settings_json, board_names
 
 
@@ -60,6 +61,7 @@ class Top(BoxLayout):
     uart_tab = ObjectProperty(None)
     sched_tab = ObjectProperty(None)
     resp_tab = ObjectProperty(None)
+    dash_tab = ObjectProperty(None)
     stop = threading.Event()
 
     def __init__(self, **kwargs):
@@ -73,7 +75,9 @@ class Top(BoxLayout):
         self.sched_tab.initialize(serial_TxQ, test)
         self.uart_tab.populate(serial_TxQ)
         self.resp_tab.initialize()
+        self.dash_tab.initialize()
         test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
+        test.attach_dependant(self.dash_tab)
         #stdtelem: attach the uart_tab here
         self.start_uart_thread()
   

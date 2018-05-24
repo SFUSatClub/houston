@@ -3,6 +3,7 @@
     uart_tab: uart_tab
     sched_tab: sched_tab
     resp_tab: resp_tab
+    dash_tab: dash_tab
     orientation: 'vertical'
 
     AnchorLayout:
@@ -43,6 +44,8 @@
                 id: sched_tab
             RESPTab:
                 id: resp_tab
+            DASHTab:
+                id: dash_tab
             
 
 <UARTTab>: # the main UART tab
@@ -259,6 +262,28 @@
                 orientation: 'vertical'
                 spacing: dp(2)
                 # cols: 1 # required if this is recycleGridLayout
+
+<DashItem>:
+    canvas.before:
+        Color:
+            rgba: 0.14, 0.14, 0.14, 1
+    size_hint_y: 0.2
+    size_hint_x: 0.2   
+
+<DASHTab>: # tab for responses
+    text: 'Dashboard'
+    BoxLayout:
+        orientation:'vertical'
+
+        GridLayout: # container for the column labels
+            cols: 4
+            rows: 4
+            size_hint_y: None
+            height: 50
+
+        
+
+
 
 <UARTRow@BoxLayout>: # row class for the UART telemetry
     canvas.before:
