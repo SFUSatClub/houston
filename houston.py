@@ -94,11 +94,12 @@ class Top(BoxLayout):
         threading.Thread(target=self.second_thread).start()
 
     def second_thread(self):
-        self.reset_serial_flag = False  # if true, will close out the serial 
-        self.uart_thread_kill = False   # allows this thread to return (and stop running)
-        while not self.stop.is_set() and not self.uart_thread_kill:
+        # self.uart_thread_kill = False   # allows this thread to return (and stop running)
+        while not self.stop.is_set():#and not self.uart_thread_kill:
+            self.reset_serial_flag = False  # if true, will close out the serial 
+            self.uart_tab.set_port_info(self.serialPort,'disconnected')   # update the name of the serial port
             if self.serialPort is not 'simulator':
-                self.do_serial()
+                self.connect_serial()
             else:
                 self.sim = simulator()
                 self.execute_simulator()
@@ -107,6 +108,7 @@ class Top(BoxLayout):
 
     def execute_simulator(self):
         self.offset = time.time()               # time we start things up
+        self.uart_tab.set_port_info('SIMULATOR','connected')   # update the name of the serial port
 
         while not self.stop.is_set() and not self.reset_serial_flag:
             # if Houston has something to send, send it
@@ -121,49 +123,58 @@ class Top(BoxLayout):
             if line is not None:
                 self.dispatch_telem(line)
 
-    def do_serial(self):
+    def connect_serial(self):
         try:
-            ser = serial.Serial(self.serialPort, 115200, timeout = 10) 
+            self.ser = serial.Serial(self.serialPort, 115200, timeout = 10) 
             self.offset = time.time()               # time we start things up
-
-            while ser.isOpen() and not self.stop.is_set() and not self.reset_serial_flag:
-                if ser.inWaiting() > 0:             # we've got characters to deal with
-                    line = ser.readline()  
-                    if len(line) > 1:               # this catches the weird glitch where I only get out one character
-                        self.dispatch_telem(line)
-                else:                               # otherwise, send stuff out if needed
-                    try:
-                        cmd = str(serial_TxQ.popleft())
-                        for char in cmd:
-                            ser.write(char.encode('ascii'))
-                            time.sleep(0.05)
-                        ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
-                    except IndexError:
-                        pass            
-            else:
-                ser.close()
-                self.uart_thread_kill = True
-                return
-
+            self.execute_serial()
+          
         except Exception as error:
-            if not self.stop.is_set():
+            if not self.stop.is_set() and not self.reset_serial_flag:
                 print(error)
-                time.sleep(1)
+                time.sleep(2)
+                self.uart_tab.set_port_info('Waiting for: ' + self.serialPort,'disconnected')   # update the name of the serial port
+
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
-                self.do_serial()
+                self.connect_serial()
+        return
+
+    def execute_serial(self):
+        while self.ser.isOpen() and not self.stop.is_set() and not self.reset_serial_flag:
+            if self.ser.inWaiting() > 0:             # we've got characters to deal with
+                line = self.ser.readline()  
+                if len(line) > 1:               # this catches the weird glitch where I only get out one character
+                    self.dispatch_telem(line)
+            else:                               # otherwise, send stuff out if needed
+                try:
+                    cmd = str(serial_TxQ.popleft())
+                    for char in cmd:
+                        self.ser.write(char.encode('ascii'))
+                        time.sleep(0.05)
+                    self.ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
+                except IndexError:
+                    pass            
+        else:
+            self.ser.close()
+            print("Attempting to kill uart thread")
+            # self.uart_thread_kill = True
+            return
+
     
     def reset_serial(self, serialPort):
         """ Resets the serial stream when the port is changed in settings """
         self.serialPort = serialPort
         # numthreads = len(threading.enumerate())
         self.reset_serial_flag = True
+        # while self.reset_serial_flag:
+        #     print("sdf")
         # Clock.schedule_once(lambda dt: self.start_uart_thread() , 2)
-        time.sleep(2)   # pause while waiting on thread cleanup - TODO: make this less bad
+        # time.sleep(2)   # pause while waiting on thread cleanup - TODO: make this less bad
         # while numthreads == len(threading.enumerate()) and numthreads > 1:    # a bit of a hack, wait around until we're sure the UART thread is closed 
         #     print("waiting")
         print(threading.enumerate())
-        self.start_uart_thread()    # start the thread back up again
+        # self.start_uart_thread()    # start the thread back up again
 
 
         
@@ -195,6 +206,7 @@ class HoustonApp(App): # the top level app class
 
         # root is a reference to the Top instance, auto populated by Kivy
         self.root.stop.set()
+        self.reset_serial_flag = 1
         print("Stopping.")
 
     def build(self):
@@ -222,7 +234,7 @@ class HoustonApp(App): # the top level app class
             serialPort = value
         print('Serial port change: ', serialPort)
 
-        if serialPort != self.root.serialPort:
+        if serialPort != self.root.serialPort: # if we've changed the serial port, reconnect
             self.root.reset_serial(serialPort)
     
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
