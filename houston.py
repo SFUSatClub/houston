@@ -55,6 +55,7 @@ file_parser = FileParse()
 # loader example: https://kivy.org/docs/api-kivy.uix.filechooser.html
 # useful:   https://stackoverflow.com/questions/46284504/kivy-getting-black-screen
 #           https://github.com/kivy/kivy/wiki/Snippets
+# https://stackoverflow.com/questions/41290285/kivy-updating-text-with-color-from-python
 
 
 class Top(BoxLayout):
@@ -94,8 +95,7 @@ class Top(BoxLayout):
         threading.Thread(target=self.second_thread).start()
 
     def second_thread(self):
-        # self.uart_thread_kill = False   # allows this thread to return (and stop running)
-        while not self.stop.is_set():#and not self.uart_thread_kill:
+        while not self.stop.is_set():
             self.reset_serial_flag = False  # if true, will close out the serial 
             self.uart_tab.set_port_info(self.serialPort,'disconnected')   # update the name of the serial port
             if self.serialPort is not 'simulator':
@@ -157,26 +157,13 @@ class Top(BoxLayout):
                     pass            
         else:
             self.ser.close()
-            print("Attempting to kill uart thread")
-            # self.uart_thread_kill = True
             return
 
-    
     def reset_serial(self, serialPort):
         """ Resets the serial stream when the port is changed in settings """
         self.serialPort = serialPort
-        # numthreads = len(threading.enumerate())
         self.reset_serial_flag = True
-        # while self.reset_serial_flag:
-        #     print("sdf")
-        # Clock.schedule_once(lambda dt: self.start_uart_thread() , 2)
-        # time.sleep(2)   # pause while waiting on thread cleanup - TODO: make this less bad
-        # while numthreads == len(threading.enumerate()) and numthreads > 1:    # a bit of a hack, wait around until we're sure the UART thread is closed 
-        #     print("waiting")
         print(threading.enumerate())
-        # self.start_uart_thread()    # start the thread back up again
-
-
         
     def dispatch_telem(self, line):
         """ Here we do several different things with the telemetry that comes in """
