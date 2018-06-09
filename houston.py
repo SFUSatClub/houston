@@ -142,6 +142,8 @@ class Top(BoxLayout):
 
     def execute_serial(self):
         while self.ser.isOpen() and not self.stop.is_set() and not self.reset_serial_flag:
+            self.uart_tab.set_port_info(self.serialPort,'connected')   # update the name of the serial port
+
             if self.ser.inWaiting() > 0:             # we've got characters to deal with
                 line = self.ser.readline()  
                 if len(line) > 1:               # this catches the weird glitch where I only get out one character
