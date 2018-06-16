@@ -1,7 +1,9 @@
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.clock import Clock, mainthread
 from kivy.app import ObjectProperty
-
+from kivy.uix.dropdown import DropDown
+from kivy.uix.button import Button
+import copy
 from houston_utils import *
 import serial
 import queue
@@ -11,12 +13,59 @@ from functools import partial
 from Command import *
 from FileParse import create_dump_command
 
+# Pass in arg to say_hello
+# Inherit button class in subdropdown
+
+main_cmds = ['file', 'state', 'deploy', 'wd', 'ack', 'sched', 'task', 'get', 'help', 'help', 'exec', 'rf']
+sub_cmds = {'file':['dump','cdump','cprefix','size'],'state':['set','get','prev'],'wd':['reset'],'ack':['default'],'sched':['this is complicated'],'task':['ermm'],'get':['tasks','runtime','heap','minheap','types','epoch'],'help':['errmmm'],'exec':['rf'],'rf':['uhh']}
+
+def test_fun(cmd_drop_down, x):
+    setattr(cmd_drop_down, 'text', x)
+    sub_dropdown = SubDropDown(cmd_name=x)
+
+class SubDropDown(Button):
+    def __init__(self,**kwargs):
+        cmd_name = kwargs.pop('cmd_name',None)
+        test1 = copy.deepcopy(cmd_name)
+        super(SubDropDown,self).__init__(**kwargs)
+        self.drop_list = None
+        self.drop_list = DropDown()
+        if self.drop_list is None:
+            print("self drop is none")
+        print("sub drop down",test1)
+        if (test1 is None) or (test1 not in sub_cmds):
+            return
+        for i in sub_cmds[test1]:
+            print("\n",i)
+            sub_btn = Button(text=i, size_hint_y=None, height=50)
+            sub_btn.bind(on_release=lambda sub_btn: self.drop_list.select(sub_btn.text))
+            self.drop_list.add_widget(sub_btn)
+        
+        #self.bind(on_release=self.drop_list.open)
+        self.bind(on_release=lambda instance : print("Test 2 "))
+        #self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
+        self.drop_list.bind(on_select=lambda instance, x: print("sub cmd test",x))
+        
+# Creating 3 seprate classes because of kivy bug
+# from stack overflow https://stackoverflow.com/questions/21294152/how-to-use-drop-down-widget-in-kivy-with-a-python-class
+class CmdDropDown(Button):
+    def __init__(self,**kwargs):
+        super(CmdDropDown,self).__init__(**kwargs)
+        self.drop_list = None
+        self.drop_list = DropDown()
+        for i in main_cmds:
+            btn = Button(text=i, size_hint_y=None, height=50)
+            btn.bind(on_release=lambda btn: self.drop_list.select(btn.text))
+            self.drop_list.add_widget(btn)
+        self.bind(on_release=self.drop_list.open)
+        self.drop_list.bind(on_select=lambda instance, x: test_fun(self, x))
+
 class SCHEDTab(TabbedPanelItem):
     sched_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
     text_input = ObjectProperty(None)
-
+ 
     def __init__(self, **kwargs):
         super(SCHEDTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
@@ -24,6 +73,12 @@ class SCHEDTab(TabbedPanelItem):
     def initialize(self, serial_TxQ, test):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
+
+        # DEBUG
+        #cmd_dropdown = CmdDropDown() 
+        #test1 = SubDropDown()
+        test1 = SubDropDown(cmd_name='file')
+
         self.serial_TxQ = serial_TxQ
         self.test = test
         cmd0 = Command(0, 'ack', 0, 3, 'Ack!', True) # make a couple default commands
@@ -35,7 +90,14 @@ class SCHEDTab(TabbedPanelItem):
 
     def add_to_sched(self):
         # TODO: bring in the relative time argument from the check box
-        cmd = Command(self.cmdid, self.cmd_entry.text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
+        # Check for None types
+        cmd_entry = self.cmd_entry.text + ' '
+        # TODO: If cmd entry  is none, handle this
+        # TODO: Handle empty strings
+        sub_cmd_entry = self.sub_cmd_entry.text + ' '
+        cmd_args = self.cmd_args.text
+        cmd_text = cmd_entry+ sub_cmd_entry + cmd_args
+        cmd = Command(self.cmdid, cmd_text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
         print('Schedule: ', cmd.cmdid, cmd.cmd, cmd.expect)
         cmd = self.parse_command(cmd) # format certain commands
         self.sched_rv.data.append(cmd.cmd_dict())
@@ -124,6 +186,8 @@ class SCHEDTab(TabbedPanelItem):
         with open(os.path.join(path, pickle_File), "wb") as handle:
             pickle.dump(self.cmds_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.dismiss_popup()
+
+
 
 
 

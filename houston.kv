@@ -110,12 +110,12 @@
                 size_hint_x: 0.2
                 on_press: root.send_button_press()
 
-
-
 <SCHEDTab>: # the command queue tab
     text: 'Schedule'
     sched_rv: sched_rv
     cmd_entry: cmd_entry
+    sub_cmd_entry: sub_cmd_entry
+    cmd_args: cmd_args
     cmd_epoch_entry: cmd_epoch_entry
     cmd_expected_entry: cmd_expected_entry
     cmd_timeout_entry: cmd_timeout_entry
@@ -125,12 +125,16 @@
         orientation:'vertical'
         
         GridLayout: # container for the column labels
-            cols: 4
+            cols: 6
             rows: 1
             size_hint_y: None
             height: 50
             Label:
                 text: 'Command'
+            Label:
+                text: 'SubCommand'
+            Label:
+                text: 'Argument'
             Label:
                 text: 'Epoch'
             Label:
@@ -139,18 +143,21 @@
                 text: 'Timeout'
         
         GridLayout: # for buttons
-            cols: 4
+            cols: 6
             rows: 2
             size_hint_y: None
             height: dp(90)
             padding: dp(8)
             spacing: dp(16)
-            TextInput:
+            CmdDropDown:
                 id: cmd_entry
+            SubDropDown:
+                id: sub_cmd_entry
+            TextInput:
+                id: cmd_args
                 size_hint_x: 1
-                hint_text: 'Command'
+                hint_text: 'Arguments'
                 padding: dp(10), dp(5), 0, 0
-
             TextInput:
                 id: cmd_epoch_entry
                 size_hint_x: 1
@@ -317,7 +324,7 @@
     expect: ''
     epoch: 0
     rel: True
-    BoxLayout:
+    BoxLayout: # debug
         size_hint_x: 1
         orientation: 'horizontal'
         Label:
