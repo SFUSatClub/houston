@@ -13,15 +13,12 @@ from functools import partial
 from Command import *
 from FileParse import create_dump_command
 
+# TODO: Clear commands after submitting them
 # Pass in arg to say_hello
 # Inherit button class in subdropdown
 
 main_cmds = ['file', 'state', 'deploy', 'wd', 'ack', 'sched', 'task', 'get', 'help', 'help', 'exec', 'rf']
 sub_cmds = {'file':['dump','cdump','cprefix','size'],'state':['set','get','prev'],'wd':['reset'],'ack':['default'],'sched':['this is complicated'],'task':['ermm'],'get':['tasks','runtime','heap','minheap','types','epoch'],'help':['errmmm'],'exec':['rf'],'rf':['uhh']}
-
-def test_fun(cmd_drop_down, x):
-    setattr(cmd_drop_down, 'text', x)
-    sub_dropdown = SubDropDown(cmd_name=x)
 
 class SubDropDown(Button):
     def __init__(self,**kwargs):
@@ -30,37 +27,37 @@ class SubDropDown(Button):
         super(SubDropDown,self).__init__(**kwargs)
         self.drop_list = None
         self.drop_list = DropDown()
+        for i in range(0,1):
+            sub_btn = Button(text="Sample button", size_hint_y=None, height=50)
+            sub_btn.bind(on_release=lambda sub_btn: self.drop_list.select(sub_btn.text))
+            self.drop_list.add_widget(sub_btn)
+        self.bind(on_release=self.drop_list.open)
+        self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
+
+    def make_drop_list(self,cmd_name):
+        #self.ids.sub_cmd_entry
+        print("Updating Drop Down")
+        self.drop_list.clear_widgets()
         if self.drop_list is None:
             print("self drop is none")
-        print("sub drop down",test1)
-        if (test1 is None) or (test1 not in sub_cmds):
+        print("sub drop down",cmd_name)
+        if (cmd_name is None) or (cmd_name not in sub_cmds):
+            print("No sub commands")
             return
-        for i in sub_cmds[test1]:
+        print("Continuing\n")
+        for i in sub_cmds[cmd_name]:
             print("\n",i)
             sub_btn = Button(text=i, size_hint_y=None, height=50)
+            sub_btn.bind(on_release=lambda sub_btn: print("test 3"))
             sub_btn.bind(on_release=lambda sub_btn: self.drop_list.select(sub_btn.text))
             self.drop_list.add_widget(sub_btn)
         
-        #self.bind(on_release=self.drop_list.open)
-        self.bind(on_release=lambda instance : print("Test 2 "))
-        #self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
-        self.drop_list.bind(on_select=lambda instance, x: print("sub cmd test",x))
-        
-# Creating 3 seprate classes because of kivy bug
-# from stack overflow https://stackoverflow.com/questions/21294152/how-to-use-drop-down-widget-in-kivy-with-a-python-class
-class CmdDropDown(Button):
-    def __init__(self,**kwargs):
-        super(CmdDropDown,self).__init__(**kwargs)
-        self.drop_list = None
-        self.drop_list = DropDown()
-        for i in main_cmds:
-            btn = Button(text=i, size_hint_y=None, height=50)
-            btn.bind(on_release=lambda btn: self.drop_list.select(btn.text))
-            self.drop_list.add_widget(btn)
         self.bind(on_release=self.drop_list.open)
-        self.drop_list.bind(on_select=lambda instance, x: test_fun(self, x))
+        self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
+        return
 
 class SCHEDTab(TabbedPanelItem):
+    sched_tab = ObjectProperty(None)
     sched_rv = ObjectProperty(None)
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
@@ -70,6 +67,11 @@ class SCHEDTab(TabbedPanelItem):
         super(SCHEDTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
 
+
+    def test_fun(self, cmd_drop_down, x):
+        print("inside test\n\n\n")
+        setattr(cmd_drop_down, 'text', x)
+        self.ids.sub_cmd_entry.make_drop_list(x)
     def initialize(self, serial_TxQ, test):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
@@ -77,7 +79,7 @@ class SCHEDTab(TabbedPanelItem):
         # DEBUG
         #cmd_dropdown = CmdDropDown() 
         #test1 = SubDropDown()
-        test1 = SubDropDown(cmd_name='file')
+        #test1 = SubDropDown(cmd_name='file')
 
         self.serial_TxQ = serial_TxQ
         self.test = test
@@ -103,6 +105,8 @@ class SCHEDTab(TabbedPanelItem):
         self.sched_rv.data.append(cmd.cmd_dict())
         self.cmds_list.append(cmd)
         self.cmdid += 1
+        self.ids.sub_cmd_entry.clear_widgets()
+        print("clearing widgetssss")
 
     def clear_sched(self):
         del self.sched_rv.data[:]
@@ -186,8 +190,21 @@ class SCHEDTab(TabbedPanelItem):
         with open(os.path.join(path, pickle_File), "wb") as handle:
             pickle.dump(self.cmds_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.dismiss_popup()
+    def test_fun2():
+        print("Entering Test fun 2")
+        return
 
 
-
-
-
+# Creating 3 seprate classes because of kivy bug
+# from stack overflow https://stackoverflow.com/questions/21294152/how-to-use-drop-down-widget-in-kivy-with-a-python-class
+class CmdDropDown(Button):
+    def __init__(self,**kwargs):
+        super(CmdDropDown,self).__init__(**kwargs)
+        self.drop_list = None
+        self.drop_list = DropDown()
+        for i in main_cmds:
+            btn = Button(text=i, size_hint_y=None, height=50)
+            btn.bind(on_release=lambda btn: self.drop_list.select(btn.text))
+            self.drop_list.add_widget(btn)
+        self.bind(on_release=self.drop_list.open)
+        self.drop_list.bind(on_select=lambda instance, x: App.get_running_app().drop_update(self, x))
