@@ -46,10 +46,6 @@ class SubDropDown(Button):
         self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
         return
 
-    def clear_drop_down(self):
-        self.drop_list.clear_widgets()
-        setattr(self,'text',"")
-
 class SCHEDTab(TabbedPanelItem):
     sched_tab = ObjectProperty(None)
     sched_rv = ObjectProperty(None)
@@ -96,8 +92,10 @@ class SCHEDTab(TabbedPanelItem):
         
     def clear_sub_drop_down(self):
         setattr(self.ids.sub_cmd_entry,'text',"")
-        #self.ids.sub_cmd_entry.clear_drop_down()
-        #setattr(self.ids.cmd_arg.cmd_args,'text',"hello")
+        setattr(self.ids.cmd_args,'text',"")
+        #setattr(self.ids.cmd_timeout_entry,'text',"") # Comment these out if you want them to clear as well
+        #setattr(self.ids.cmd_epoch_entry,'text',"")
+        #setattr(self.ids.cmd_expected_entry,'text',"")
 
     def clear_sched(self):
         del self.sched_rv.data[:]
