@@ -14,6 +14,7 @@ suffix_from_name =  dict(zip(name_from_suffix.values(),name_from_suffix.keys()))
 class FileParse():
     def __init__(self):
         self.file_download = False
+        self.flag_download = False
         self.prefix = 'a'
         self.suffix = 'A'
         self.reported_size = 0
@@ -24,15 +25,18 @@ class FileParse():
         starts writing it if yes. Creates/closes local log files"""
         self.line = line
 
-        if not self.file_download:
+        if not self.file_download or not self.flag_download:
             if string_find(line, 'FILE: '):
-                print ('Captured file')
-                self.file_download = True
-                self.update_meta()
-                self.create_file()
+                if string_find(line, 'zEFILE: '):
+                    self.flag_download = True
+                else:
+                    print ('Captured file')
+                    self.file_download = True
+                    self.update_meta()
+                    self.create_file()
             else:
                 pass
-        else:   # we're actively capturing a file
+        else if file_download:   # we're actively capturing a file
             """ Methodology: read the file contents into a string, then break the string up and write to .csv """
             if string_find(line, 'FILE_END: '):
                 print('finishing file write')
@@ -52,6 +56,8 @@ class FileParse():
                 self.file_raw_data = ''
             else:
                 self.file_raw_data = self.file_raw_data + str(self.line)
+        else if self.flag_download:
+            pass
 
 
     def update_meta(self):
