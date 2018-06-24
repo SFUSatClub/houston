@@ -227,8 +227,13 @@ class HoustonApp(App): # the top level app class
     
     def rm_button_press(self, cmdid): #TODO: is it really required to go up to the app like this?
         self.root.sched_tab.rm_button_press(cmdid)
-    def drop_update(self, cmd_drop, cmd):
-        self.root.sched_tab.test_fun(cmd_drop, cmd)
+
+    def drop_update(self, cmd):
+        self.root.sched_tab.make_sub_drop_down(cmd)
+
+    def clear_sub_drop_down(self):
+        self.root.sched_tab.clear_sub_drop_down()
+
     def serial_function(self, data):
         print("Serial fun, " + data)
 

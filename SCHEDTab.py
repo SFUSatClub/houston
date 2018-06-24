@@ -17,8 +17,8 @@ from FileParse import create_dump_command
 # Pass in arg to say_hello
 # Inherit button class in subdropdown
 
-main_cmds = ['file', 'state', 'deploy', 'wd', 'ack', 'sched', 'task', 'get', 'help', 'help', 'exec', 'rf']
-sub_cmds = {'file':['dump','cdump','cprefix','size'],'state':['set','get','prev'],'wd':['reset'],'ack':['default'],'sched':['this is complicated'],'task':['ermm'],'get':['tasks','runtime','heap','minheap','types','epoch'],'help':['errmmm'],'exec':['rf'],'rf':['uhh']}
+main_cmds = ['file','state','deploy','wd','wd reset','ack','sched','task','get','help','help','exec','rf']
+sub_cmds = {'file':['dump','cdump','cprefix','size'],'state':['set','get','prev'],'wd':['reset'],'wd reset':['f_reset'],'get':['tasks','runtime','heap','minheap','types','epoch'],'exec':['rf']}
 
 class SubDropDown(Button):
     def __init__(self,**kwargs):
@@ -28,33 +28,27 @@ class SubDropDown(Button):
         self.drop_list = None
         self.drop_list = DropDown()
         for i in range(0,1):
-            sub_btn = Button(text="Sample button", size_hint_y=None, height=50)
+            sub_btn = Button(text="", size_hint_y=None, height=50)
             sub_btn.bind(on_release=lambda sub_btn: self.drop_list.select(sub_btn.text))
             self.drop_list.add_widget(sub_btn)
         self.bind(on_release=self.drop_list.open)
         self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
 
     def make_drop_list(self,cmd_name):
-        #self.ids.sub_cmd_entry
-        print("Updating Drop Down")
         self.drop_list.clear_widgets()
-        if self.drop_list is None:
-            print("self drop is none")
-        print("sub drop down",cmd_name)
-        if (cmd_name is None) or (cmd_name not in sub_cmds):
-            print("No sub commands")
+        if (self.drop_list is None) or (cmd_name is None) or (cmd_name not in sub_cmds):
             return
-        print("Continuing\n")
         for i in sub_cmds[cmd_name]:
-            print("\n",i)
             sub_btn = Button(text=i, size_hint_y=None, height=50)
-            sub_btn.bind(on_release=lambda sub_btn: print("test 3"))
             sub_btn.bind(on_release=lambda sub_btn: self.drop_list.select(sub_btn.text))
             self.drop_list.add_widget(sub_btn)
-        
         self.bind(on_release=self.drop_list.open)
         self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
         return
+
+    def clear_drop_down(self):
+        self.drop_list.clear_widgets()
+        setattr(self,'text',"")
 
 class SCHEDTab(TabbedPanelItem):
     sched_tab = ObjectProperty(None)
@@ -67,19 +61,13 @@ class SCHEDTab(TabbedPanelItem):
         super(SCHEDTab, self).__init__(**kwargs)
         # can't call something like initialize() here, needs to be done after build phase
 
-
-    def test_fun(self, cmd_drop_down, x):
+    def make_sub_drop_down(self, x):
         print("inside test\n\n\n")
-        setattr(cmd_drop_down, 'text', x)
         self.ids.sub_cmd_entry.make_drop_list(x)
+
     def initialize(self, serial_TxQ, test):
         # called from Top() since it can't be called from init apparently
         print ("INITIALIZE")
-
-        # DEBUG
-        #cmd_dropdown = CmdDropDown() 
-        #test1 = SubDropDown()
-        #test1 = SubDropDown(cmd_name='file')
 
         self.serial_TxQ = serial_TxQ
         self.test = test
@@ -105,8 +93,11 @@ class SCHEDTab(TabbedPanelItem):
         self.sched_rv.data.append(cmd.cmd_dict())
         self.cmds_list.append(cmd)
         self.cmdid += 1
-        self.ids.sub_cmd_entry.clear_widgets()
-        print("clearing widgetssss")
+        
+    def clear_sub_drop_down(self):
+        setattr(self.ids.sub_cmd_entry,'text',"")
+        #self.ids.sub_cmd_entry.clear_drop_down()
+        #setattr(self.ids.cmd_arg.cmd_args,'text',"hello")
 
     def clear_sched(self):
         del self.sched_rv.data[:]
@@ -190,9 +181,6 @@ class SCHEDTab(TabbedPanelItem):
         with open(os.path.join(path, pickle_File), "wb") as handle:
             pickle.dump(self.cmds_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.dismiss_popup()
-    def test_fun2():
-        print("Entering Test fun 2")
-        return
 
 
 # Creating 3 seprate classes because of kivy bug
@@ -207,4 +195,6 @@ class CmdDropDown(Button):
             btn.bind(on_release=lambda btn: self.drop_list.select(btn.text))
             self.drop_list.add_widget(btn)
         self.bind(on_release=self.drop_list.open)
-        self.drop_list.bind(on_select=lambda instance, x: App.get_running_app().drop_update(self, x))
+        self.drop_list.bind(on_select=lambda instance, x: setattr(self, 'text', x))
+        self.drop_list.bind(on_select=lambda instance, x: App.get_running_app().drop_update(x))
+        self.drop_list.bind(on_select=lambda instance, x: App.get_running_app().clear_sub_drop_down())
