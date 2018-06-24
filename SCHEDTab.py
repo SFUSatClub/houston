@@ -57,9 +57,11 @@ class SCHEDTab(TabbedPanelItem):
         idCounter = startingID
 
         for cmds in self.cmds_list:     # repopulate schedule tab w/ updated cmds_list and their new id
-            cmds.cmdid = idCounter        # keep id count consistent
+            if cmds.cmdid > idCounter:
+                cmds.cmdid = idCounter        # keep id count consistent
             self.sched_rv.data.append(cmds.cmd_dict())
             idCounter = idCounter + 1
+        self.cmdid = idCounter
 
     def uplink_schedule(self):
         """ using the kivy clock, we schedule when to put cmds out on the tx queue
@@ -105,7 +107,11 @@ class SCHEDTab(TabbedPanelItem):
         with open(filename[0], "rb") as handle:
             self.cmds_list_load = pickle.load(handle)
 
-        maxIDNum = self.cmds_list.__len__() - 1     # zero indexed
+        # snag the highest ID in the list so far
+        maxIDNum = 0
+        for cmd in self.cmds_list:
+            if cmd.cmdid > maxIDNum:
+                maxIDNum = cmd.cmdid 
 
         for cmds in self.cmds_list_load:
             cmds.cmdid = maxIDNum + 1        # keep id count consistent
@@ -113,6 +119,7 @@ class SCHEDTab(TabbedPanelItem):
             self.sched_rv.data.append(cmds.cmd_dict())
             self.cmds_list.append(cmds)
             maxIDNum = maxIDNum + 1         # another command added so ID increment by 1
+            self.cmdid = maxIDNum + 1       # when adding manually, this is the next ID to use (hence the increment)
 
         self.dismiss_popup()
 

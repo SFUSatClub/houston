@@ -8,7 +8,7 @@ from houston_utils import string_find as string_find
 import datetime
 import csv
 import os
-name_from_suffix = {'A': 'FSYS_SYS', 'B':'FSYS_ERROR', 'C': 'OBC_CURRENT'}
+name_from_suffix = {'A': 'FSYS_SYS', 'B':'FSYS_ERROR', 'C': 'OBC_CURRENT', 'D': 'TEMPS'}
 suffix_from_name =  dict(zip(name_from_suffix.values(),name_from_suffix.keys()))
 
 class FileParse():

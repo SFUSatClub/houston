@@ -8,6 +8,8 @@ board_names = {
     '0.4x - tty.usbserial-A50285BI'         : '/dev/tty.usbserial-A50285BI',
     '0.5A - cu.usbserial-DN02I8UQ'          : '/dev/cu.usbserial-DN02I8UQ',
     '0.5C - cu.usbserial-DN02I8UP'          : '/dev/cu.usbserial-DN02I8UP',
+    '0.5D - cu.usbserial-DN04IW1O'          : '/dev/cu.usbserial-DN04IW1O',
+
     'Windows - COM7'                        : 'COM7',
     'Internal Simulator'                    : 'simulator'
     
