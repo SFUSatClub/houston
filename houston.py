@@ -146,7 +146,7 @@ class Top(BoxLayout):
 
             if self.ser.inWaiting() > 0:             # we've got characters to deal with
                 line = self.ser.readline()  
-                if len(line) > 1:               # this catches the weird glitch where I only get out one character
+                if len(line.decode('ascii')) > 1:               # this catches the weird glitch where I only get out one character
                     self.dispatch_telem(line)
             else:                               # otherwise, send stuff out if needed
                 try:
@@ -172,6 +172,7 @@ class Top(BoxLayout):
         try:
             line = line.decode(encoding = 'ascii')
         except: 
+            print("Line decode didn't work")
             pass
         print (time.time() - self.offset,':',line)
         self.update_telem_stream(line.expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
