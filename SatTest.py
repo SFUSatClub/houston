@@ -174,3 +174,9 @@ class SatTest():
         cmd.state = 'errored'
         self.errored.append(cmd)
         del self.pending[i]
+
+    def reset_sattest(self):
+        """ Remove everything from sattest """
+        del self.errored[:]
+        del self.acknowledged[:]
+        del self.pending[:]

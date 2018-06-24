@@ -37,7 +37,11 @@ class SCHEDTab(TabbedPanelItem):
         # TODO: bring in the relative time argument from the check box
         cmd = Command(self.cmdid, self.cmd_entry.text, self.cmd_epoch_entry.text, self.cmd_timeout_entry.text, self.cmd_expected_entry.text, True)
         print('Schedule: ', cmd.cmdid, cmd.cmd, cmd.expect)
-        cmd = self.parse_command(cmd) # format certain commands
+        try:
+            cmd = self.parse_command(cmd) # format certain commands
+        except:
+            print("Something was wrong with the command")
+            return
         self.sched_rv.data.append(cmd.cmd_dict())
         self.cmds_list.append(cmd)
         self.cmdid += 1
@@ -66,6 +70,7 @@ class SCHEDTab(TabbedPanelItem):
     def uplink_schedule(self):
         """ using the kivy clock, we schedule when to put cmds out on the tx queue
         """
+        self.test.reset_sattest()
         self.test.zero_epoch() #TODO: we won't always do this - use real sat epoch
         self.test.add_schedule(self.cmds_list[:]) # add all of our commands
 

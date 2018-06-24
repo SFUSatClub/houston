@@ -54,7 +54,6 @@ class RESPTab(TabbedPanelItem):
 
     def clear_resp(self):
         del self.resp_rv.data[:] # need to do it this way so that all references are deleted - "deep delete"
-
 # class Resprow(RecycleDataViewBehavior):
 #     ''' Add selection support to the Label '''
 #     index = NumericProperty(0)
