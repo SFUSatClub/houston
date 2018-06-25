@@ -88,8 +88,10 @@ class Top(BoxLayout):
         if App.get_running_app().config.get('houston_settings', 'uart_options') == 'Use Manual Entry':
             self.serialPort = App.get_running_app().config.get('houston_settings', 'uart_string')
         else:
-            self.serialPort = board_names[App.get_running_app().config.get('houston_settings', 'uart_options')]
-
+            try:
+                self.serialPort = board_names[App.get_running_app().config.get('houston_settings', 'uart_options')]
+            except KeyError:
+                self.serialPort = 'COM7'
     def start_uart_thread(self):
         print('UART thread started')
         threading.Thread(target=self.second_thread).start()

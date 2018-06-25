@@ -48,6 +48,8 @@ class UARTTab(TabbedPanelItem):
 
     def insert_end(self, value):
         self.rv.data.append({'value': value})
+        if len(self.rv.data) > 100:
+            self.rv.data = self.rv.data[1:]
 
     def update(self, value):
         if self.rv.data:

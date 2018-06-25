@@ -25,18 +25,18 @@ class FileParse():
         starts writing it if yes. Creates/closes local log files"""
         self.line = line
 
-        if not self.file_download or not self.flag_download:
+        if not self.file_download: #or not self.flag_download:
             if string_find(line, 'FILE: '):
-                if string_find(line, 'zEFILE: '):
-                    self.flag_download = True
-                else:
+                # if string_find(line, 'zEFILE: '):
+                #     self.flag_download = True
+                # else:
                     print ('Captured file')
                     self.file_download = True
                     self.update_meta()
                     self.create_file()
             else:
                 pass
-        else if file_download:   # we're actively capturing a file
+        else:   # we're actively capturing a file
             """ Methodology: read the file contents into a string, then break the string up and write to .csv """
             if string_find(line, 'FILE_END: '):
                 print('finishing file write')
@@ -56,8 +56,6 @@ class FileParse():
                 self.file_raw_data = ''
             else:
                 self.file_raw_data = self.file_raw_data + str(self.line)
-        else if self.flag_download:
-            pass
 
 
     def update_meta(self):
