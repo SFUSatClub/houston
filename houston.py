@@ -69,6 +69,9 @@ class Top(BoxLayout):
         super(Top, self).__init__(**kwargs)
         self.check_which_port()
         self.setup_tabs()
+        self.log = open("data.txt", "a")
+        self.log.write("\r\n" + "Began test:" + str(datetime.datetime.now().strftime("%Y-%m-%d-%I:%M:%S%p")) + "\r\n")
+
     
     def setup_tabs(self):
         # since we can't call functions from the constructor of anything but the root element (top), 
@@ -136,7 +139,10 @@ class Top(BoxLayout):
                 print(error)
                 time.sleep(2)
                 self.uart_tab.set_port_info('Waiting for: ' + self.serialPort,'disconnected')   # update the name of the serial port
-
+                try:
+                    self.log.write(str(datetime.datetime.now().strftime("%Y-%m-%d-%I:%M:%S%p")) + ',' + "Waiting for serial...\r\n")
+                except ValueError:
+                    pass
                 print('Waiting for serial...')
                 # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.connect_serial()
@@ -180,6 +186,8 @@ class Top(BoxLayout):
         self.update_telem_stream(line.expandtabs(tabsize=8)) # expand tabs to get rid of unknown tab char that can come in
         test.check_response(line, time.time())
         file_parser.process_raw(line)
+        self.log.write(str(time.time() - self.offset,) + ',' + line)
+
 
         #TODO: add the telem to a log
 
@@ -200,6 +208,7 @@ class HoustonApp(App): # the top level app class
         self.root.stop.set()
         self.reset_serial_flag = 1
         print("Stopping.")
+        self.root.log.close()
 
     def build(self):
         # must immediately return Top() here, cannot do something like self.top = Top, and call other functions      

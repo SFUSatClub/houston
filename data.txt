@@ -1,0 +1,38 @@
+
+Began test:1530078240.462326
+
+Began test:1530078257.638304
+
+Began test:time.struct_time(tm_year=2018, tm_mon=6, tm_mday=27, tm_hour=1, tm_min=46, tm_sec=42, tm_wday=2, tm_yday=178, tm_isdst=1)
+
+Began test:2018-06-27
+
+Began test:2018-06-27-01:53AM
+
+Began test:2018-06-27-01:54:02AM
+
+Began test:2018-06-27-01:54:59AM
+
+Began test:2018-06-27-01:55:14AM
+1530078916.2289011,Waiting for serial...1530078918.22994,Waiting for serial...
+Began test:2018-06-27-01:55:45AM
+1530078947.805453,Waiting for serial...
+1530078949.8101382,Waiting for serial...
+
+Began test:2018-06-27-01:56:54AM
+2018-06-27-01:56:56AM,Waiting for serial...
+2018-06-27-01:56:58AM,Waiting for serial...
+2018-06-27-01:57:00AM,Waiting for serial...
+
+Began test:2018-06-27-01:57:40AM
+
+Began test:2018-06-27-01:57:52AM
+
+Began test:2018-06-27-01:58:18AM
+2018-06-27-01:58:20AM,Waiting for serial...
+2018-06-27-01:58:22AM,Waiting for serial...
+2018-06-27-01:58:24AM,Waiting for serial...
+
+Began test:2018-06-27-02:01:15AM
+2018-06-27-02:01:17AM,Waiting for serial...
+2018-06-27-02:01:19AM,Waiting for serial...
