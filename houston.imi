@@ -1,0 +1,9 @@
+[houston_settings]
+uart_options = Use Manual Entry
+uart_string = /dev/cu/usbserial-DN04IW1N
+optionsexample =0.5A -cu.usbserial-DN02I8UQ
+stringexample = sfnogjn
+
+[example]
+optionsexample = please select an option
+stringexampe = str2njodv
