@@ -72,10 +72,7 @@ class Top(BoxLayout):
         self.log = open("data.txt", "a")
         self.log.write("\r\n" + "Began test:" + str(datetime.datetime.now().strftime("%Y-%m-%d-%I:%M:%S%p")) + "\r\n")
 
-    
     def setup_tabs(self):
-        # since we can't call functions from the constructor of anything but the root element (top), 
-        # basically do constructor things here
         self.sched_tab.initialize(serial_TxQ, test)
         self.uart_tab.populate(serial_TxQ)
         self.resp_tab.initialize()
@@ -83,7 +80,6 @@ class Top(BoxLayout):
 
         test.attach_dependant(self.resp_tab) # tell the test about resp tab, allows resp tab to receive test data upon update
         test.attach_dependant(self.dash_tab)
-        #stdtelem: attach the uart_tab here
         self.start_uart_thread()
   
     def check_which_port(self):
@@ -144,7 +140,6 @@ class Top(BoxLayout):
                 except ValueError:
                     pass
                 print('Waiting for serial...')
-                # log.write('Waiting for serial: ' + str(time.time()) + '\r\n')
                 self.connect_serial()
         return
 
@@ -152,17 +147,17 @@ class Top(BoxLayout):
         while self.ser.isOpen() and not self.stop.is_set() and not self.reset_serial_flag:
             self.uart_tab.set_port_info(self.serialPort,'connected')   # update the name of the serial port
 
-            if self.ser.inWaiting() > 0:             # we've got characters to deal with
+            if self.ser.inWaiting() > 0:                        # we've got characters to deal with
                 line = self.ser.readline()  
                 if len(line.decode('ascii')) > 1:               # this catches the weird glitch where I only get out one character
                     self.dispatch_telem(line)
-            else:                               # otherwise, send stuff out if needed
+            else:                                               # otherwise, send stuff out if needed
                 try:
                     cmd = str(serial_TxQ.popleft())
                     for char in cmd:
                         self.ser.write(char.encode('ascii'))
                         time.sleep(0.05)
-                    self.ser.write('\r\n'.encode('ascii')) # sat needs them to consider it a command
+                    self.ser.write('\r\n'.encode('ascii'))      # sat needs them to consider it a command
                 except IndexError:
                     pass            
         else:
@@ -187,9 +182,6 @@ class Top(BoxLayout):
         test.check_response(line, time.time())
         file_parser.process_raw(line)
         self.log.write(str(time.time() - self.offset,) + ',' + line)
-
-
-        #TODO: add the telem to a log
 
     @mainthread
     def update_telem_stream(self, new_text):

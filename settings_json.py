@@ -9,6 +9,7 @@ board_names = {
     '0.5A - cu.usbserial-DN02I8UQ'          : '/dev/cu.usbserial-DN02I8UQ',
     '0.5C - cu.usbserial-DN02I8UP'          : '/dev/cu.usbserial-DN02I8UP',
     '0.5D - cu.usbserial-DN04IW1O'          : '/dev/cu.usbserial-DN04IW1O',
+    '0.5E - cu.usbserial-DN04IW1N'          : '/dev/cu.usbserial-DN04IW1N',
 
     'Windows - COM7'                        : 'COM7',
     'Internal Simulator'                    : 'simulator'
