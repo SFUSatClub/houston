@@ -31,62 +31,64 @@ It is a serial monitor, command schedule creator, command uploader, and telemetr
 ### Initial Setup (skip if pip and Python are already in your path)
 1. Open the Command Prompt. Make sure that pip is installed (pip should automatically install with newer versions of python)
 
-   - To check if pip is installed:
+>> To check if pip is installed:
    
-   `pip --version`
+>> `pip --version`
    
-   - This should give you a version and path, if it is installed. If it's not installed, follow the instructions at:
-   https://projects.raspberrypi.org/en/projects/using-pip-on-windows/4
+>> This should give you a version and path, if it is installed. If it's not installed, follow the instructions at:
+https://projects.raspberrypi.org/en/projects/using-pip-on-windows/4
 
 ### Installing Houston
 1. run `pip install virtualenvwrapper`
 2. In your home directory, find .bash_profile (could also be .bashrc or .profile). Open it and paste the following lines:
 
-  `export WORKON_HOME=$HOME/.virtualenvs`
+  >> `export WORKON_HOME=$HOME/.virtualenvs`
   
-  `export PROJECT_HOME=$HOME/Devel`
+  >> `export PROJECT_HOME=$HOME/Devel`
 
-  `source [insert path to virtualenvwrapper.sh]` 
+  >> `source [insert path to virtualenvwrapper.sh]` 
   
-- E.g. `source /C/Users/USERNAME/AppData/Local/Programs/Python/Python37-32/Scripts/virtualenvwrapper.sh`
+>> E.g. `source /C/Users/USERNAME/AppData/Local/Programs/Python/Python37-32/Scripts/virtualenvwrapper.sh`
 
-Note: It should be possible to use $HOME/AppData/… to describe the path. However, Windows was, when this procedure was first made, unable to handle the whitespace in  username by itself. It was also incapable of finding virtualenvwrapper.sh through    `which virtualenvwrapper.sh` even when virtualenvwrapper.sh was in the path.
+>> Note: It should be possible to use $HOME/AppData/… to describe the path. However, Windows was, when this procedure was first made, unable to handle the whitespace in  username by itself. It was also incapable of finding virtualenvwrapper.sh through    `which virtualenvwrapper.sh` even when virtualenvwrapper.sh was in the path.
 
 3. cd into Houston
 
 4. Create virtual environment:
-  `mkvirtualenv --python=`which python` orcasat-gcs (the name can be different)`
-- If this fails: substitute `which python` for the full path of your Python.exe
+  >> `mkvirtualenv --python=`which python` orcasat-gcs (the name can be different)`
+
+ >> If this fails: substitute `which python` for the full path of your Python.exe
 
 5. Enter the virtual environment:
-  `workon orcasat-gcs`
+  >> `workon orcasat-gcs`
 
 6. Install kivy:
- `pip install cython`
- `pip install https://github.com/kivy/kivy/archive/master.zip`
-- If this fails, go to the link, download the zip to your computer, and try:
+ >> `pip install cython`
+ >> `pip install https://github.com/kivy/kivy/archive/master.zip`
 
-  `pip install [pathToDirectoryWithTheZip]/kivy-master.zip`
+>> If this fails, go to the link, download the zip to your computer, and try:
+
+ >> `pip install [pathToDirectoryWithTheZip]/kivy-master.zip`
   
 7. Further installs (if install in 6 fails, install these and try again):
 
-  `pip install -r requirements.txt`
+  >>`pip install -r requirements.txt`
   
-  - If this fails:
+  >> If this fails:
   
-  `pip install serial`
+  >>`pip install serial`
   
-  `pip install pygame`
+  >>`pip install pygame`
   
-  `pip install kivy.deps.sdl2`
+  >> `pip install kivy.deps.sdl2`
   
-  `pip install kivy.deps.glew`
+  >> `pip install kivy.deps.glew`
   
-  `pip install kivy.deps.gstreamer`
+  >> `pip install kivy.deps.gstreamer`
   
-  `pip install kivy.deps.angle`
+  >> `pip install kivy.deps.angle`
   
-  `pip install serial`
+  >> `pip install serial`
   
  8. Try opening the Houston app as indicated under user. If this fails, see if you have all the installs below with `pip list` (shows all your pip installs), and `pip install [whatever is missing]` 
  
